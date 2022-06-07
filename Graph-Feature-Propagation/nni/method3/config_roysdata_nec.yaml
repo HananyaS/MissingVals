@@ -1,0 +1,15 @@
+authorName: Shachar Hananya
+experimentName: Method 3 - ROYSDATA - NEC
+maxExecDuration: 72h
+maxTrialNum: 500
+searchSpacePath: search_space_3.json
+trainingServicePlatform: local
+trial:
+  codeDir: /home/dsi/shacharh/Projects/MissingVals/Graph-Feature-Propagation
+  command: python main.py --nni 3 --dataset RoysData --missing_ratio -1 --use_existence_cols
+    False
+  gpuNum: 0
+trialConcurrency: 1
+tuner:
+  builtinTunerName: TPE
+useAnnotation: false

@@ -1,0 +1,9 @@
+{
+       "batch_size":{"_type":"choice", "_value": [32, 64, 128]},
+       "lr": {"_type":"choice", "_value": [1, 0.1, 0.01, 0.001]},
+       "preweight": {"_type":"choice", "_value": [5, 10, 15]},
+       "layer_1": {"_type":"choice", "_value": [5, 9, 12]},
+       "layer_2": {"_type":"choice", "_value": [3, 7]},
+       "activation": {"_type":"choice", "_value": ["relu", "elu", "tanh"]},
+       "dropout": {"_type":"uniform", "_value": [0, 0.5]}
+}

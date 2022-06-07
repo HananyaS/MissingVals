@@ -1,0 +1,15 @@
+authorName: Shachar Hananya
+experimentName: Method 4 - RONSDATA - EC
+maxExecDuration: 200h
+maxTrialNum: 500
+searchSpacePath: search_space_4.json
+trainingServicePlatform: local
+trial:
+  codeDir: /home/dsi/shacharh/Projects/MissingVals/Graph-Feature-Propagation
+  command: python main.py --nni 4 --dataset RonsData --missing_ratio -1 --use_existence_cols 
+    True --use_best_params False --distance euclidian
+  gpuNum: 0
+trialConcurrency: 1
+tuner:
+  builtinTunerName: TPE
+useAnnotation: false

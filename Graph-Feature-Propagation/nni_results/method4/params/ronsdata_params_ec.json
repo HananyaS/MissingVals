@@ -1,0 +1,9 @@
+{
+       "batch_size": 32,
+       "lr": 0.01,
+       "preweight": 5,
+       "layer_1": 9,
+       "layer_2": 7,
+       "activation": "relu",
+       "dropout": 0.3
+}
