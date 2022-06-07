@@ -1,0 +1,7 @@
+{
+  "name": "Ron's Data",
+  "data_path": "../Data/RonsData/processed/",
+  "target_col": "Target",
+  "scalable": false,
+  "missing_ratio": null
+}

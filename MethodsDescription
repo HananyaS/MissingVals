@@ -1,0 +1,45 @@
+Methods 1, 2 have an option to add existence columns
+
+Naive / Method 1:
+    Z-Scoring, fill nulls with 0 (mean), and apply Random Forest algorithm.
+
+Method 2:
+    Z-Scoring, imputation using Graph Feature Propagation (GFP) algorithm (using the KNN graph), and applying the Naive
+     method.
+
+Method 3:
+    Z-Scoring, imputation using Graph Feature Propagation (GFP) algorithm (using the KNN graph), generate a graph from
+    each sample as follows: for a sample S, the graph will contain nodes as the number of the features in S (including
+    the missing ones), and the edges will connect only features that are not missing in S with weights equals to the
+     correlation between the features.
+
+     NOTE: the graph is sensitive to the order of the features in the sample.
+
+     Finally, apply a graph classification method (which as well, keep the order of the features within the sample).
+
+Method 4:
+    Z-Scoring, generate a graph from each sample as follows: for a sample S, the graph will contain nodes as the number
+    of present features in S (without the missing ones), and the edges will connect only features that are present in
+    S with weights equals to the correlation between the features.
+
+     NOTES:
+        1. The graph is sensitive to the order of the features in the sample.
+        2. Implementation is same like method 3, but the value of the isolated nodes is 0.
+
+     Finally, apply a graph classification method (which as well, keep the order of the features within the sample).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method 5:
+    Start like method 4, but extract the one before last layer of the GCN, and input this into another GCN with the
+    KNN graph (now for node classification).
+
+Method 6 (Optional):
+    Just like method 5, but instead of the last GCN, use a tabular ML.
+
+Method 7 (Optional):
+    Think how to manage method 5 such that all the model will be trained within the same back-prop.
+
+
+
+
