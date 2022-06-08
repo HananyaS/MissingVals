@@ -1,0 +1,7 @@
+{
+  "name": "Banknote-50",
+  "data_path": "../Data/Banknote/processed/50/",
+  "target_col": "class",
+  "scalable": true,
+  "missing_ratio": 50
+}

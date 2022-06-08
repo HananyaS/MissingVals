@@ -9,13 +9,6 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="shacharh@localhost:4002 (18)">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/dsi/shacharh/Projects/MissingVals" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="shacharh@localhost:4002 (3)">
         <serverdata>
           <mappings>
