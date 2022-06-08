@@ -1,0 +1,8 @@
+{
+  "objective": "binary:logistic",
+  "learning_rate": 0.03,
+  "max_depth": 25,
+  "colsample_bytree": 0.5,
+  "gamma": 0.6,
+  "n_estimators": 25
+}

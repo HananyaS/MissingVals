@@ -1,0 +1,15 @@
+authorName: Shachar Hananya
+experimentName: Method 3 - BANKNOTE - EC
+maxExecDuration: 72h
+maxTrialNum: 500
+searchSpacePath: search_space_3.json
+trainingServicePlatform: local
+trial:
+  codeDir: /home/dsi/shacharh/Projects/MissingVals/Graph-Feature-Propagation
+  command: python main.py --nni 3 --dataset Banknote --missing_ratio 90 --use_existence_cols
+    True
+  gpuNum: 0
+trialConcurrency: 1
+tuner:
+  builtinTunerName: TPE
+useAnnotation: false

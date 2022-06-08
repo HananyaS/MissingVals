@@ -1,0 +1,7 @@
+{
+  "name": "Roy's Data",
+  "data_path": "../Data/RoysData/processed/",
+  "target_col": "GDMA",
+  "scalable": false,
+  "missing_ratio": null
+}

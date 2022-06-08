@@ -1,0 +1,7 @@
+{
+  "preweight": 4,
+  "layer_1": 3,
+  "layer_2": 3,
+  "activation": "relu",
+  "dropout": 0
+}

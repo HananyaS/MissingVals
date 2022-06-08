@@ -1,0 +1,7 @@
+{
+  "name": "New GDM",
+  "data_path": "../Data/NewGDM/processed/",
+  "target_col": "tags",
+  "scalable": false,
+  "missing_ratio": null
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Diabetes",
+  "data_path": "../Data/Diabetes/processed/",
+  "target_col": "Class",
+  "scalable": true,
+  "missing_ratio": [
+    50,
+    60,
+    70,
+    80,
+    90
+  ]
+}

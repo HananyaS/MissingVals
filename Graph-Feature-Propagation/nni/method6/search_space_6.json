@@ -1,0 +1,15 @@
+{
+       "batch_size":{"_type":"choice", "_value": [32, 64, 128]},
+       "lr": {"_type":"choice", "_value": [1, 0.1, 0.01, 0.001]},
+       "preweight": {"_type":"choice", "_value": [5, 10, 15]},
+       "layer_1": {"_type":"choice", "_value": [5, 9, 12]},
+       "layer_2": {"_type":"choice", "_value": [3, 7]},
+       "activation": {"_type":"choice", "_value": ["relu", "elu", "tanh"]},
+       "dropout": {"_type":"uniform", "_value": [0, 0.5]},
+       "objective":{"_type":"choice", "_value": ["binary:logistic"]},
+       "learning_rate": {"_type":"choice", "_value": [0.3, 0.1, 0.03, 0.01]},
+       "max_depth": {"_type":"choice", "_value": [8, 15, 25]},
+       "colsample_bytree": {"_type":"choice", "_value": [0.5, 1]},
+       "gamma": {"_type":"choice", "_value": [0, 0.6]},
+       "n_estimators": {"_type":"choice", "_value": [25, 50]}
+}
