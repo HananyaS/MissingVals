@@ -69,7 +69,7 @@ class TabDataPair(Dataset):
 
             return self.X[idx]
 
-    def get_data(self):
+    def get_features(self):
         return self.X
 
     def get_labels(self):

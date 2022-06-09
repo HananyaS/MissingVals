@@ -9,8 +9,10 @@ from torch.utils.data import DataLoader
 from typing import Callable, List
 from sklearn.metrics import roc_auc_score
 
+from abstractModel import AbstractModel
 
-class AbstractNN(nn.Module, ABC):
+
+class AbstractNN(nn.Module, AbstractModel):
     def __init__(self, device: torch.device):
         super(AbstractNN, self).__init__()
         self.device = device
