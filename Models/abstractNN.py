@@ -10,9 +10,9 @@ from typing import Callable, List
 from sklearn.metrics import roc_auc_score
 
 
-class AbstractModel(nn.Module, ABC):
+class AbstractNN(nn.Module, ABC):
     def __init__(self, device: torch.device):
-        super(AbstractModel, self).__init__()
+        super(AbstractNN, self).__init__()
         self.device = device
 
     @abstractmethod
