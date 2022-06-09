@@ -1,8 +1,6 @@
 import argparse
 import warnings
 
-warnings.filterwarnings("ignore")
-
 import os
 from itertools import product
 
@@ -10,6 +8,8 @@ from methods import *
 from utils import *
 
 from matplotlib import pyplot as plt
+
+warnings.filterwarnings("ignore")
 
 str2bool = lambda v: v.lower() in ("yes", "true", "t", "1")
 parser = argparse.ArgumentParser(description="Graph-Feature-Propagation")
