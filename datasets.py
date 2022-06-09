@@ -20,6 +20,7 @@ class TabDataPair(Dataset):
         normalize: bool = False,
         normalization_params: Tuple[List, List] = None,
         shuffle: bool = False,
+        add_existence_cols: bool = False,
     ):
         assert Y is None or X.shape[0] == Y.shape[0]
         self.X = self._transform_types(X, float)
@@ -30,6 +31,11 @@ class TabDataPair(Dataset):
 
         if shuffle:
             self._shuffle()
+
+        self.existence_cols = []
+
+        if add_existence_cols:
+            self.add_existence_cols(inplace=True)
 
         self.name = name
         self.train = self.Y is not None
@@ -102,6 +108,39 @@ class TabDataPair(Dataset):
     def __str__(self):
         return f'Dataset "{self.name}" contains {self.X.shape[0]} samples and {self.X.shape[1]} features, in {"train" if self.train else "test"} mode '
 
+    def get_feat_corr(self, abs_: bool = False, fill_na_first: bool = False):
+        df = pd.DataFrame(self.X.cpu().detach().numpy())
+
+        if fill_na_first:
+            df = df.fillna(df.mean())
+
+        corr = df.corr()
+
+        if abs_:
+            corr = abs(corr)
+
+        return corr
+
+    def add_existence_cols(self, inplace: bool = True):
+        assert len(self.existence_cols) == 0, "Existence columns were already added!"
+        existence_cols = 1 - torch.isnan(self.X).float()
+
+        if inplace:
+            self.X = torch.cat((self.X, existence_cols), dim=1)
+            self.existence_cols = list(range(int(self.X.shape[1] / 2), self.X.shape[1]))
+            return self
+
+        return torch.cat((self.X, existence_cols), dim=1)
+
+    def drop_existence_cols(self, inplace: bool = True):
+        assert len(self.existence_cols) > 0, "Existence columns were not added!"
+        if inplace:
+            self.X = self.X[:, : -len(self.existence_cols)]
+            self.existence_cols = []
+            return self
+
+        return self.X[:, : -len(self.existence_cols)]
+
     @classmethod
     def load(
         cls,
@@ -153,6 +192,7 @@ class TabDataset:
         name: str = "",
         normalize: bool = False,
         shuffle: bool = False,
+        add_existence_cols: bool = False,
     ):
         assert test_X is not None or test_Y is None
         assert val_X is not None or val_Y is None
@@ -168,6 +208,7 @@ class TabDataset:
             name=f"{name} - train",
             normalize=False,
             shuffle=shuffle,
+            add_existence_cols=add_existence_cols,
         )
 
         if normalize:
@@ -182,6 +223,7 @@ class TabDataset:
                 normalize=normalize,
                 normalization_params=None if not normalize else (mu, sigma),
                 shuffle=shuffle,
+                add_existence_cols=add_existence_cols,
             )
 
         if self.val_exists:
@@ -193,6 +235,7 @@ class TabDataset:
                 normalize=normalize,
                 normalization_params=None if not normalize else (mu, sigma),
                 shuffle=shuffle,
+                add_existence_cols=add_existence_cols,
             )
 
     def __str__(self):
@@ -215,6 +258,27 @@ class TabDataset:
 
     def get_num_features(self):
         return self.train.X.shape[1]
+
+    def get_train_corr(self, **kwargs):
+        return self.train.get_feat_corr(**kwargs)
+
+    def add_existence_cols(self):
+        self.train.add_existence_cols(inplace=True)
+
+        if self.test_exists:
+            self.test.add_existence_cols(inplace=True)
+
+        if self.val_exists:
+            self.val.add_existence_cols(inplace=True)
+
+    def drop_existence_cols(self):
+        self.train.drop_existence_cols(inplace=True)
+
+        if self.test_exists:
+            self.test.drop_existence_cols(inplace=True)
+
+        if self.val_exists:
+            self.val.drop_existence_cols(inplace=True)
 
     @classmethod
     def load(
@@ -285,7 +349,7 @@ class TabDataset:
 
 
 def test():
-    data_dir = "Data/Banknote/processed/90"
+    data_dir = "Data/RonsData/processed"
     data_file_name = "train.csv"
 
     tdp = TabDataPair.load(
@@ -293,12 +357,17 @@ def test():
         data_file_name=data_file_name,
         include_config=True,
         normalize=True,
+        add_existence_cols=False,
     )
 
-    td = TabDataset.load(data_dir=data_dir, normalize=False, shuffle=True)
+    tdp.add_existence_cols(inplace=True)
+    td = TabDataset.load(
+        data_dir=data_dir, normalize=False, shuffle=True, add_existence_cols=True
+    )
+    td.drop_existence_cols()
 
-    print(tdp)
-    print(td.get_train_data())
+    print(td.get_train_corr(abs_=True))
+    print(td.get_train_corr(abs_=True, fill_na_first=True))
 
 
 if __name__ == "__main__":
