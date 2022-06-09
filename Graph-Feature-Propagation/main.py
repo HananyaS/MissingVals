@@ -17,7 +17,7 @@ parser.add_argument("--dataset", type=str, default="RonsData", help="dataset nam
 # parser.add_argument("--dataset", type=str, default="Diabetes", help="dataset name")
 parser.add_argument("--missing_ratio", type=int, default=90, help="missing ratio")
 parser.add_argument("--lr", type=float, default=0.001, help="learning rate")
-parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
+parser.add_argument("--n_epochs", type=int, default=100, help="number of n_epochs")
 parser.add_argument("--batch_size", type=int, default=32, help="batch size")
 parser.add_argument("--runall", type=str2bool, default=False, help="run all datasets")
 parser.add_argument(
@@ -206,6 +206,7 @@ def main(
             use_existence_cols=use_existence_cols,
             params=params,
         )
+        
         print("Naive classifier done!")
         print_results(naive_score, "Naive")
         results[1] = naive_score
