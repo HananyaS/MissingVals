@@ -3,13 +3,13 @@ import torch.nn as nn
 import torch.optim as optim
 
 import matplotlib.pyplot as plt
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 from torch.utils.data import DataLoader
 
 from typing import Callable, List
 from sklearn.metrics import roc_auc_score
 
-from abstractModel import AbstractModel
+from .abstractModel import AbstractModel
 
 
 class AbstractNN(nn.Module, AbstractModel):

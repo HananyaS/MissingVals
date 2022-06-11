@@ -21,6 +21,7 @@ class TabDataPair(Dataset):
         normalization_params: Tuple[List, List] = None,
         shuffle: bool = False,
         add_existence_cols: bool = False,
+        fill_na: bool = False,
     ):
         assert Y is None or X.shape[0] == Y.shape[0]
         self.X = self._transform_types(X, float)
@@ -28,6 +29,9 @@ class TabDataPair(Dataset):
 
         if normalize:
             self.zscore(normalization_params, inplace=True, return_params=False)
+
+        if fill_na:
+            self.fill_na(inplace=True)
 
         if shuffle:
             self._shuffle()
@@ -110,6 +114,13 @@ class TabDataPair(Dataset):
             return (self.X - mu) / sigma, mu, sigma
 
         return (self.X - mu) / sigma
+
+    def fill_na(self, inplace: bool = True):
+        if inplace:
+            self.X = torch.nan_to_num(self.X)
+            return self
+
+        return torch.nan_to_num(self.X)
 
     def __getitem__(self, idx):
         if self.train:

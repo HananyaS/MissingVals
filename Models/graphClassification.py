@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import one_hot
 
-from abstractNN import AbstractNN
+from .abstractNN import AbstractNN
 
 
 class ValuesAndGraphStructure(AbstractNN):

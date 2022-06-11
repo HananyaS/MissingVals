@@ -1,6 +1,7 @@
 import xgboost as xgb
-from abstractModel import AbstractModel as AbstractModel
+from .abstractModel import AbstractModel as AbstractModel
 
+import torch
 from torch.utils.data import DataLoader
 
 from sklearn.metrics import roc_auc_score
@@ -18,22 +19,24 @@ class XGBoost(AbstractModel):
 
     def predict(self, test_loader: DataLoader, probs: bool = False):
         if probs:
-            return self.clf.predict_proba(test_loader.dataset.get_features())
+            return torch.from_numpy(self.clf.predict_proba(test_loader.dataset.get_features())[:, 1])
 
-        return self.clf.predict(test_loader.dataset.get_features())
+        return torch.from_numpy(self.clf.predict(test_loader.dataset.get_features()))
 
-    def evaluate(self, metric: str = "auc", **kwargs) -> float:
+    def evaluate(self, metric: str = "auc", verbose=True, **kwargs) -> float:
         if metric == "auc":
-            return self._eval_auc(**kwargs)
+            res = self._eval_auc(**kwargs)
 
-        raise NotImplementedError
+        else:
+            raise NotImplementedError
+
+        print(f'{metric.upper()} score is:\t{res}')
 
     def _eval_auc(
         self,
         loader: DataLoader,
         labels_from_loader: Callable = lambda loader: loader.dataset.get_labels(),
     ) -> float:
-        self.eval()
         preds = self.predict(loader, probs=True)
         labels = labels_from_loader(loader)
 
