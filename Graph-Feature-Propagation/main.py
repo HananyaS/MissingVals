@@ -206,7 +206,7 @@ def main(
             use_existence_cols=use_existence_cols,
             params=params,
         )
-        
+
         print("Naive classifier done!")
         print_results(naive_score, "Naive")
         results[1] = naive_score

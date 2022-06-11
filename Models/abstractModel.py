@@ -4,13 +4,13 @@ from abc import abstractmethod, ABC
 
 class AbstractModel(ABC):
     @abstractmethod
-    def fit(self, **kwargs):
+    def fit(self, *args, **kwargs):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, **kwargs):
+    def predict(self, *args, **kwargs):
         raise NotImplementedError
 
     @abstractmethod
-    def evaluate(self, **kwargs):
+    def evaluate(self, *args, **kwargs):
         raise NotImplementedError

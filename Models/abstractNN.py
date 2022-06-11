@@ -18,16 +18,16 @@ class AbstractNN(nn.Module, AbstractModel):
         self.device = device
 
     @abstractmethod
-    def forward_one_before_last_layer(self):
+    def forward_one_before_last_layer(self, *args, **kwargs):
         raise NotImplementedError
 
     @abstractmethod
-    def extract_last_layer(self):
+    def forward_last_layer(self, *args, **kwargs):
         raise NotImplementedError
 
     def forward(self, *args, **kwargs):
         x = self.forward_one_before_last_layer(*args, **kwargs)
-        x = self.extract_last_layer(x)
+        x = self.forward_last_layer(x)
         return x
 
     @abstractmethod
@@ -35,10 +35,15 @@ class AbstractNN(nn.Module, AbstractModel):
         raise NotImplementedError  # TODO: specify device
 
     @abstractmethod
-    def _eval_loss(self, output, labels, loss_func):
+    def _eval_loss(
+        self,
+        output: torch.Tensor,
+        labels: torch.Tensor,
+        loss_func: torch.nn.modules.loss,
+        n_classes: int = 2,
+    ) -> torch.nn.modules.loss:
         raise NotImplementedError
 
-    @abstractmethod
     def fit(
         self,
         train_loader: DataLoader,
@@ -80,9 +85,9 @@ class AbstractNN(nn.Module, AbstractModel):
                 optimizer.zero_grad()
 
                 input_data, labels = self._transform_input(data)
-                output = self(input_data)
+                output = self(*input_data)
 
-                loss = self._eval_loss(output, labels, criterion)
+                loss = self._eval_loss(output, labels, criterion, n_classes=train_loader.dataset.get_num_classes())
                 loss.backward()
                 optimizer.step()
 
@@ -98,7 +103,10 @@ class AbstractNN(nn.Module, AbstractModel):
                 self.eval()
                 pred_val = self.predict(val_loader, probs=True)
                 val_loss = self._eval_loss(
-                    pred_val, labels_from_loader(val_loader), criterion
+                    pred_val,
+                    labels_from_loader(val_loader),
+                    criterion,
+                    n_classes=train_loader.dataset.get_num_classes(),
                 )
             train_auc = self.evaluate(
                 train_loader, metric=metric, labels_from_loader=labels_from_loader
@@ -175,6 +183,7 @@ class AbstractNN(nn.Module, AbstractModel):
 
     def _save_model(self, path: str = "model.pt"):
         torch.save(self.state_dict(), path)
+        return self
 
     def predict(
         self,
@@ -190,7 +199,7 @@ class AbstractNN(nn.Module, AbstractModel):
         with torch.no_grad():
             for data in loader:
                 input_data, _ = self._transform_input(data)
-                output = self(input_data)
+                output = self(*input_data)
                 if probs:
                     preds = torch.cat((preds, output), 0)
                 else:
