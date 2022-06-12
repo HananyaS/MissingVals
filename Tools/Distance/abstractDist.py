@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 class AbstractDist(ABC):
     _types = (torch.Tensor, np.ndarray)
 
-    def __call__(self, x: _types, y: _types) -> float:
-        return self.calc_dist(x, y)
+    def __call__(self, x: _types, y: _types, *args, **kwargs) -> float:
+        return self.calc_dist(x, y, *args, **kwargs)
 
     def calc_dist(self, x: _types, y: _types, *args, **kwargs) -> float:
         assert type(x) == type(y), "x and y must be of the same type"

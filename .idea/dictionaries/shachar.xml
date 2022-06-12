@@ -5,6 +5,7 @@
       <w>dtype</w>
       <w>fillna</w>
       <w>heur</w>
+      <w>iters</w>
     </words>
   </dictionary>
 </component>

@@ -28,12 +28,3 @@ class EuclidianDist(AbstractDist):
     @property
     def name(self):
         return "Euclidian"
-
-
-dist = EuclidianDist(ignore_nan=True)
-x = torch.Tensor([1, 2, 3])
-y = torch.Tensor([3, 2, 1])
-
-d = dist(x, y)
-print(d)
-print(dist)

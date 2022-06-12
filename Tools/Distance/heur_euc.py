@@ -60,3 +60,24 @@ class HeurEuc(AbstractDist):
     def name(self):
         return "Heuristic Euclidian"
 
+
+if __name__ == "__main__":
+    from euclidian import EuclidianDist
+
+    dist = EuclidianDist(ignore_nan=True)
+    heur = HeurEuc(alpha=1.0, beta=1.0)
+    x = torch.randn(10, 10)
+    y = torch.randn(10, 10)
+
+    e_x, var_x = x.nanmean(axis=0), x.var(axis=0)
+
+    x[0, 1] = torch.nan
+    y[0, 1] = torch.nan
+    x[0, 2] = torch.nan
+    y[0, 3] = torch.nan
+    y[0, 5] = torch.nan
+
+    print(dist(x[0], y[0]))
+    print(heur(x[0], y[0]))
+    print(heur(x[0], y[0], feat_params_x=(e_x, var_x)))
+
