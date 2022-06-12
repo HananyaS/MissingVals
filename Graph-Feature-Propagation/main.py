@@ -187,7 +187,7 @@ def main(
     val_X, _, _ = zscore_norm(val_X, mean, std)
     test_X, _, _ = zscore_norm(test_X, mean, std)
 
-    features_corr = abs(train_X.copy(deep=True).fillna(0).corr()).values
+    features_corr = abs(train_X.copy(deep=True).fill_na(0).corr()).values
 
     results = {}
 

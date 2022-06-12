@@ -1,0 +1,1 @@
+# TODO: abstract class for distance calculation

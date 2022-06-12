@@ -116,7 +116,7 @@ def fill_data_gfp(
         data = data.drop(columns=["tags"])
 
     data_w_existence = add_existence_columns(data)
-    filled_data = data.copy(deep=True).fillna(0)
+    filled_data = data.copy(deep=True).fill_na(0)
 
     if edges is "knn":
         # edges = get_knn_adj(data_w_existence.fillna(0))
@@ -307,8 +307,8 @@ def methods_3_4(
         )
 
     else:
-        imputed_train_X = train_X.fillna(0)
-        imputed_test_X = test_X.fillna(0)
+        imputed_train_X = train_X.fill_na(0)
+        imputed_test_X = test_X.fill_na(0)
 
     imputed_train_X = imputed_train_X.values
     imputed_test_X = imputed_test_X.values
@@ -470,8 +470,8 @@ def methods_5_6(
     existing_features_train = (1 - train_X.isna()).values
     existing_features_test = (1 - test_X.isna()).values
 
-    imputed_train_X = train_X.fillna(0).values
-    imputed_test_X = test_X.fillna(0).values
+    imputed_train_X = train_X.fill_na(0).values
+    imputed_test_X = test_X.fill_na(0).values
 
     train_graphs_ds = graphs_from_samples(
         imputed_train_X,

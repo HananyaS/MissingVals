@@ -318,13 +318,13 @@ list_unfll = list_unfull_numerical_column + list_very_unfull_columns
 for column in list_unfll:
     if column in input_data_efs.columns:
         median = data_efs[:int(data_size * 0.8)][column].median()
-        data_efs[column].fillna(median, inplace=True)
+        data_efs[column].fill_na(median, inplace=True)
 
 # add mean in unkwown valuse in continues columns
 for column in list_unfull_continues:
     if column in input_data_efs.columns:
         mean = data_efs[:int(data_size * 0.8)][column].mean()
-        data_efs[column].fillna(mean, inplace=True)
+        data_efs[column].fill_na(mean, inplace=True)
 
 train_data = data_efs[:int(data_size * 0.8)]
 # test_data = data_efs[int(data_size*0.7):]
