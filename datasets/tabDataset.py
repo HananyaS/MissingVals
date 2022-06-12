@@ -191,7 +191,7 @@ class TabDataset:
 
 
 def test():
-    data_dir = "../Data/Banknote/processed/50"
+    data_dir = "../data/Banknote/processed/50"
 
     td = TabDataset.load(
         data_dir=data_dir,

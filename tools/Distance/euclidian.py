@@ -7,7 +7,7 @@ class EuclidianDist(AbstractDist):
     def __init__(self, ignore_nan: bool = False):
         super().__init__()
         self.ignore_nan = ignore_nan
-
+    
     def _calc_dist(self, x: AbstractDist._types, y: AbstractDist._types) -> float:
         _type = torch if isinstance(x, torch.Tensor) else np
 

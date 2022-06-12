@@ -2,10 +2,10 @@ import os
 import pandas as pd
 import numpy as np
 
-rons_data_dir = "../Data/RonsData/raw"
+rons_data_dir = "../data/RonsData/raw"
 rons_data_path = os.path.join(rons_data_dir, "data.csv")
 
-roys_data_dir = "../Data/RoysDataOld/processed"
+roys_data_dir = "../data/RoysDataOld/processed"
 
 
 def preprocess_rons_data():
@@ -35,7 +35,7 @@ def preprocess_rons_data():
     test_data = test_data.reset_index(drop=True)
     val_data = val_data.reset_index(drop=True)
 
-    os.makedirs("../Data/RonsData/processed", exist_ok=True)
+    os.makedirs("../data/RonsData/processed", exist_ok=True)
     train_data.to_csv("Data/RonsData/processed/train.csv")
     test_data.to_csv("Data/RonsData/processed/test.csv")
     val_data.to_csv("Data/RonsData/processed/val.csv")
@@ -73,8 +73,8 @@ def preprocess_rons_data():
 
 
 def preprocess_new_gdm_data():
-    data = pd.read_csv("../Data/NewGDM/raw/after_preprocess.csv", index_col=0)
-    tags = pd.read_csv("../Data/NewGDM/raw/new_data.csv", index_col=0)['Study GDM ']
+    data = pd.read_csv("../data/NewGDM/raw/after_preprocess.csv", index_col=0)
+    tags = pd.read_csv("../data/NewGDM/raw/new_data.csv", index_col=0)['Study GDM ']
     tags = tags.replace(['b no GDM', 'a GDM'], [0, 1])
 
     data['tags'] = tags
@@ -92,14 +92,14 @@ def preprocess_new_gdm_data():
         data, "tags", test_ratio, val_ratio
     )
 
-    os.makedirs("../Data/NewGDM/processed", exist_ok=True)
+    os.makedirs("../data/NewGDM/processed", exist_ok=True)
     train_data.to_csv("Data/NewGDM/processed/train.csv")
     test_data.to_csv("Data/NewGDM/processed/test.csv")
     val_data.to_csv("Data/NewGDM/processed/val.csv")
 
 
 def preprocess_roys_data():
-    raw_data = pd.read_csv("../Data/RoysDataOld/raw/week_14_ new.csv")
+    raw_data = pd.read_csv("../data/RoysDataOld/raw/week_14_ new.csv")
     data = raw_data.drop(columns=raw_data.columns[:71], inplace=False)
 
     # translate columns from hebrew to english
@@ -116,7 +116,7 @@ def preprocess_roys_data():
         inplace=True,
     )
 
-    labels = pd.read_csv("../Data/RoysDataOld/raw/gdm.csv")
+    labels = pd.read_csv("../data/RoysDataOld/raw/gdm.csv")
     data["tags"] = labels.values[:, 1]
 
     test_ratio = 0.2
@@ -131,7 +131,7 @@ def preprocess_roys_data():
         == raw_data.shape[0]
     )
 
-    os.makedirs("../Data/RoysDataOld/processed", exist_ok=True)
+    os.makedirs("../data/RoysDataOld/processed", exist_ok=True)
     train_data.to_csv("Data/RoysData/processed/train.csv")
     test_data.to_csv("Data/RoysData/processed/test.csv")
     val_data.to_csv("Data/RoysData/processed/val.csv")
@@ -155,7 +155,7 @@ def preprocess_diabetes():
     ]
 
     data = pd.read_csv(
-        "../Data/Diabetes/raw/pima_indians_diabetes.csv", header=None, names=columns
+        "../data/Diabetes/raw/pima_indians_diabetes.csv", header=None, names=columns
     )
     missing_ratios = list(range(50, 100, 10))
     full_cols = np.random.choice(
@@ -198,7 +198,7 @@ def preprocess_banknote():
     columns = ["variance", "skewness", "curtosis", "entropy", "class"]
 
     data = pd.read_csv(
-        "../Data/Banknote/raw/data_banknote_authentication.txt", header=None, names=columns
+        "../data/Banknote/raw/data_banknote_authentication.txt", header=None, names=columns
     )
     missing_ratios = list(range(50, 100, 10))
     full_cols = np.random.choice(

@@ -87,7 +87,12 @@ class AbstractNN(nn.Module, AbstractModel):
                 input_data, labels = self._transform_input(data)
                 output = self(*input_data)
 
-                loss = self._eval_loss(output, labels, criterion, n_classes=train_loader.dataset.get_num_classes())
+                loss = self._eval_loss(
+                    output,
+                    labels,
+                    criterion,
+                    n_classes=train_loader.dataset.get_num_classes(),
+                )
                 loss.backward()
                 optimizer.step()
 

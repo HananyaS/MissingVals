@@ -1,11 +1,11 @@
-from Models.xgb import XGBoost as xgb
-from Datasets.tabDataPair import TabDataPair as TDP
-from Models.graphClassification import ValuesAndGraphStructure as VAGS
+from models.xgb import XGBoost as xgb
+from datasets.tabDataPair import TabDataPair as TDP
+from models.graphClassification import ValuesAndGraphStructure as VAGS
 import json
 import torch
 
 
-data_dir = "Data/RoysData/processed"
+data_dir = "data/RoysData/processed"
 train_filename = "train.csv"
 val_filename = "test.csv"
 
