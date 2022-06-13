@@ -4,9 +4,10 @@ import numpy as np
 import pandas as pd
 
 import torch
+from torch.utils.data import DataLoader
 
 from typing import Union
-from tabDataPair import TabDataPair as TDP
+from datasets.tabDataPair import TabDataPair as TDP
 
 
 class TabDataset:
@@ -42,8 +43,8 @@ class TabDataset:
             add_existence_cols=add_existence_cols,
         )
 
-        if normalize:
-            _, mu, sigma = self.train.zscore(return_params=True, inplace=True)
+        # if normalize:
+        #     _, mu, sigma = self.train.zscore(inplace=True)
 
         if self.test_exists:
             assert train_X.shape[1] == test_X.shape[1]
@@ -51,8 +52,9 @@ class TabDataset:
                 X=test_X,
                 Y=test_Y,
                 name=f"{name} - test",
-                normalize=normalize,
-                normalization_params=None if not normalize else (mu, sigma),
+                normalize=False,
+                # normalize=normalize,
+                # normalization_params=None if not normalize else (mu, sigma),
                 shuffle=shuffle,
                 add_existence_cols=add_existence_cols,
             )
@@ -63,26 +65,53 @@ class TabDataset:
                 X=val_X,
                 Y=val_Y,
                 name=f"{name} - val",
-                normalize=normalize,
-                normalization_params=None if not normalize else (mu, sigma),
+                normalize=False,
+                # normalize=normalize,
+                # normalization_params=None if not normalize else (mu, sigma),
                 shuffle=shuffle,
                 add_existence_cols=add_existence_cols,
             )
 
+        if normalize:
+            self.zscore()
+
     def __str__(self):
         return f'Dataset "{self.name}" contains {self.train.X.shape[1]} features, including train {f", test" if self.test_exists else ""}, {f"val" if self.val_exists else ""}'
 
-    def get_train_data(self):
+    def zscore(self):
+        if not self.normalized:
+            _, mu, sigma = self.train.zscore(inplace=True, return_params=True)
+
+            if self.test_exists:
+                self.test.zscore(inplace=True, params=(mu, sigma))
+
+            if self.val_exists:
+                self.val.zscore(inplace=True, params=(mu, sigma))
+
+            self.normalized = True
+
+        return self
+
+    def get_train_data(self, as_loader=False, **kwargs):
+        if as_loader:
+            return DataLoader(self.train, **kwargs)
+
         return self.train
 
-    def get_test_data(self):
+    def get_test_data(self, as_loader=False, **kwargs):
         if self.test_exists:
+            if as_loader:
+                return DataLoader(self.test, **kwargs)
+
             return self.test
 
         raise ValueError("No test data available")
 
-    def get_val_data(self):
+    def get_val_data(self, as_loader=False, **kwargs):
         if self.val_exists:
+            if as_loader:
+                return DataLoader(self.val, **kwargs)
+
             return self.val
 
         raise ValueError("No val data available")
@@ -110,17 +139,6 @@ class TabDataset:
 
         if self.val_exists:
             self.val.drop_existence_cols(inplace=True)
-
-    def get_train_loader(self, **kwargs):
-        return self.train.to_loader(**kwargs)
-
-    def get_test_loader(self, **kwargs):
-        assert self.test_exists, "No test data available"
-        return self.test.to_loader(**kwargs)
-
-    def get_val_loader(self, **kwargs):
-        assert self.val_exists, "No val data available"
-        return self.val.to_loader(**kwargs)
 
     @classmethod
     def load(
