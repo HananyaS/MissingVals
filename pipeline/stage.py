@@ -2,11 +2,17 @@ from abc import ABC, abstractmethod
 
 
 class Stage(ABC):
+    _tasks = []
+
     def __init__(self, name: str, task: str, n_id: int = 0, run_kwargs: dict = {}):
         self.name = name
         self.id = n_id
         self.task = task
         self.run_kwargs = run_kwargs
+
+    @property
+    def tasks(self):
+        return self._tasks
 
     @abstractmethod
     def run(self, *args, **kwargs):

@@ -4,9 +4,10 @@ from typing import List
 
 
 class DataStage(Stage):
-    _tasks: List[str] = ["load", "norm", "get_train", "get_test", "get_val"]
+    _additional_tasks: List[str] = ["load", "norm", "get_train", "get_test", "get_val"]
 
     def __init__(self, task: str, **kwargs):
+        self._tasks.extend(self._additional_tasks)
         assert task in self._tasks, f"Unknown task:\t{task}"
         super().__init__(task=task, **kwargs)
 
@@ -27,10 +28,6 @@ class DataStage(Stage):
             return self._get_val(input_, **self.run_kwargs)
 
         raise ValueError(f"Unknown task:\t{self.task}")
-
-    @property
-    def tasks(self):
-        return self._tasks
 
     @staticmethod
     def _load(data_dir: str, **kwargs):
