@@ -1,17 +1,31 @@
 import torch
 import torch.nn as nn
 from torch.nn.functional import one_hot
-
 from .abstractNN import AbstractNN
+from typing import Union
+from torch.utils.data import DataLoader
+from datasets.tabDataset import TabDataset
 
 
 class ValuesAndGraphStructure(AbstractNN):
     def __init__(
-        self, nodes_number, feature_size, RECEIVED_PARAMS, device, num_classes=1
+        self,
+        nodes_number: int = None,
+        feature_size: int = None,
+        RECEIVED_PARAMS: dict = None,
+        device: torch.device = torch.device("cpu"),
+        num_classes=1,
+        input_example=None,
     ):
         super(ValuesAndGraphStructure, self).__init__(device=device)
-        self.feature_size = feature_size  # dimension of features of nodes
-        self.nodes_number = nodes_number
+
+        if input_example is not None:
+            self.init_attributes(input_example)
+        else:
+            assert nodes_number is not None and feature_size is not None
+            self.feature_size = feature_size  # dimension of features of nodes
+            self.nodes_number = nodes_number
+
         self.device = device
         self.RECEIVED_PARAMS = RECEIVED_PARAMS
 
@@ -50,6 +64,13 @@ class ValuesAndGraphStructure(AbstractNN):
             self.activation_func_dict[self.activation_func],
         )
 
+    def init_attributes(self, input_example: Union[DataLoader, TabDataset]):
+        if isinstance(input_example, DataLoader):
+            input_example = input_example.dataset
+
+        self.feature_size = 1
+        self.nodes_number = input_example.get_num_features()
+
     def _forward_one_before_last_layer(self, x, adjacency_matrix):
         # multiply the matrix adjacency_matrix by (learnt scalar) self.alpha
         a, b, c = adjacency_matrix.shape
@@ -68,16 +89,10 @@ class ValuesAndGraphStructure(AbstractNN):
         x = self.classifier(x)
         return x
 
-    def forward_one_before_last_layer(self, *args, **kwargs):
-        return self._forward_one_before_last_layer(*args, **kwargs)
-
     def _forward_last_layer(self, x):
         x = self.fc3(x)
         x = nn.Sigmoid()(x)
         return x
-
-    def forward_last_layer(self, *args, **kwargs):
-        return self._forward_last_layer(*args, **kwargs)
 
     def calculate_adjacency_matrix(self, batched_adjacency_matrix):
         # D^(-0.5)
@@ -122,4 +137,3 @@ class ValuesAndGraphStructure(AbstractNN):
         output = torch.cat([output, 1 - output], dim=1)
         loss = loss_func(output, labels)
         return loss
-

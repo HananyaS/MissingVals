@@ -1,8 +1,8 @@
 from pipeline.pipline import Pipeline
 from pipeline.stages.dataStage import DataStage
 from pipeline.stages.mlModelStage import MLModelStage
-from models.xgb import XGBoost
 from models.graphClassification import ValuesAndGraphStructure as VGS
+import torch
 
 loadData = DataStage(name="Load Data", task="load", run_kwargs={"normalize": False})
 normData = DataStage(name="Normalize Data", task="norm", store_in="dataset")
@@ -23,31 +23,46 @@ getTest = DataStage(
     store_in="test_loader",
 )
 
-xgbBuilder = MLModelStage(
+vgsBuilder = MLModelStage(
     name="XGBoostBuilder",
     task="build",
-    run_kwargs={"model_type": XGBoost, "n_estimators": 100},
-    input_from={},
-    store_in="xgb_model",
+    run_kwargs={
+        "model_type": VGS,
+        "device": torch.device("cpu"),
+        "RECEIVED_PARAMS": {
+            "preweight": 4,
+            "layer_1": 12,
+            "layer_2": 3,
+            "activation": "relu",
+            "dropout": 0.2,
+        }
+    },
+    input_from={"input_example": "train_loader"},
+    store_in="model",
 )
 
-xgbFit = MLModelStage(
+vgsFit = MLModelStage(
     name="XGBoostFit",
     task="fit",
-    input_from={"model": "xgb_model", "train_loader": "train_loader"},
+    input_from={
+        "model": "model",
+        "train_loader": "train_loader",
+        "val_loader": "test_loader",
+    },
+    run_kwargs={"n_epochs": 10, "lr": 0.001, "save_results": False},
 )
 
-xgbEval = MLModelStage(
+vgsEval = MLModelStage(
     name="XGBoostEval",
     task="evaluate",
-    input_from={"model": "xgb_model", "val_loader": "test_loader"},
+    input_from={"model": "model", "val_loader": "test_loader"},
     store_in="test_results",
 )
 
 pipe = Pipeline(
     name="Test",
     verbose=True,
-    stages=[loadData, normData, getTrain, getTest, xgbBuilder, xgbFit, xgbEval],
+    stages=[loadData, normData, getTrain, getTest, vgsBuilder, vgsFit, vgsEval],
 )
 
 print(pipe)

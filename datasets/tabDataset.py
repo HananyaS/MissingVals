@@ -66,8 +66,6 @@ class TabDataset:
                 Y=val_Y,
                 name=f"{name} - val",
                 normalize=False,
-                # normalize=normalize,
-                # normalization_params=None if not normalize else (mu, sigma),
                 shuffle=shuffle,
                 add_existence_cols=add_existence_cols,
             )

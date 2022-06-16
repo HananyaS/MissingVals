@@ -18,12 +18,18 @@ class AbstractNN(nn.Module, AbstractModel):
         self.device = device
 
     @abstractmethod
-    def forward_one_before_last_layer(self, *args, **kwargs):
+    def _forward_one_before_last_layer(self, *args, **kwargs):
         raise NotImplementedError
 
+    def forward_one_before_last_layer(self, *args, **kwargs):
+        return self._forward_one_before_last_layer(*args, **kwargs)
+
     @abstractmethod
-    def forward_last_layer(self, *args, **kwargs):
+    def _forward_last_layer(self, *args, **kwargs):
         raise NotImplementedError
+
+    def forward_last_layer(self, *args, **kwargs):
+        return self.forward_last_layer(*args, **kwargs)
 
     def forward(self, *args, **kwargs):
         x = self.forward_one_before_last_layer(*args, **kwargs)
@@ -33,6 +39,9 @@ class AbstractNN(nn.Module, AbstractModel):
     @abstractmethod
     def _transform_input(self, data: torch.Tensor):
         raise NotImplementedError  # TODO: specify device
+
+    def transform_input(self, data: torch.Tensor):
+        return self._transform_input(data)
 
     @abstractmethod
     def _eval_loss(
@@ -50,7 +59,7 @@ class AbstractNN(nn.Module, AbstractModel):
         val_loader: DataLoader,
         n_epochs: int,
         lr: float,
-        weight_decay: float,
+        weight_decay: float = 0,
         optimizer: torch.optim = optim.Adam,
         verbose: bool = False,
         criterion: torch.nn.modules.loss = nn.CrossEntropyLoss(),

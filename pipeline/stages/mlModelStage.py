@@ -24,7 +24,7 @@ class MLModelStage(AbstractModelStage):
         if self.task == "evaluate":
             return self._evaluate(*args, **kwargs, **self.run_kwargs)
 
-        raise ValueError(f"Unknown task:\t{self.task}")
+        raise ValueError(f"Unknown task:\t{self.task}, Available tasks: {self._tasks}")
 
     @staticmethod
     def _build(model_type: Type[AbstractModel], **model_kwargs):
@@ -44,4 +44,4 @@ class MLModelStage(AbstractModelStage):
         return model.evaluate(val_loader=val_loader, **kwargs)
 
     def __str__(self):
-        return f"MLModelStage {self.id}\t{self.name}"
+        return f"ML Model Stage {self.id}\t{self.name}"
