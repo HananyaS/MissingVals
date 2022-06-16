@@ -1,20 +1,22 @@
 from .stage import Stage
-from typing import List, Any
-from copy import copy
+from typing import List
+from copy import deepcopy
 
 
 class Pipeline:
-    def __init__(self, name: str, *stages: Stage):
+    def __init__(self, name: str, stages: List[Stage], verbose: bool = False):
         self.name = name
         self.n_stages = len(stages)
         self.stages = Pipeline.make_pipline(stages)
+        self.cache = {}
+        self.verbose = verbose
 
     @staticmethod
     def make_pipline(stages: List[Stage]) -> List[Stage]:
         _stages = []
 
         for i, stage in enumerate(stages):
-            _stages.append(copy(stage).set_id(i))
+            _stages.append(deepcopy(stage).set_id(i))
 
         return _stages
 
@@ -35,18 +37,38 @@ class Pipeline:
         ), "Pipeline can only be added to another Pipeline"
         return Pipeline(f"{self.name} -> {other.name}", *self.stages, *other.stages)
 
-    def run(self, _input: Any, verbose: bool = False):
-        res = _input
+    def run(self, *init_args, **init_kwargs):
+        # def run(self, _input: Any, verbose: bool = False):
+        #     res = _input
+
+        is_first = True
         for i, stage in enumerate(self.stages):
             try:
-                if verbose:
+                if self.verbose:
                     print(f"Stage {i} started")
 
-                res = stage(res)
+                if is_first:
+                    res = stage(*init_args, **init_kwargs)
+                    is_first = False
+
+                elif stage.input_from is not None:
+                    for var in stage.input_from.values():
+                        assert var in self.cache.keys(), f'Var "{var}" not found in cache'
+
+                    input_ = {param: self.cache[var] for param, var in stage.input_from.items()}
+                    res = stage(**input_)
+
+                else:
+                    res = stage(res)
+
+                if stage.store_in is not None:
+                    assert (
+                        stage.store_in not in self.cache.keys()
+                    ), f"Var {stage.store_in} already in cache"
+                    self.cache[stage.store_in] = res
 
             except Exception as e:
-                print(f"{stage} failed with error: {e}")
-                break
+                raise Exception(f"{stage} failed with error: {e}")
 
         return res
 

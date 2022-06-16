@@ -13,3 +13,7 @@ class AbstractModel(ABC):
     @abstractmethod
     def evaluate(self, *args, **kwargs):
         raise NotImplementedError
+
+    @abstractmethod
+    def __str__(self):
+        raise NotImplementedError

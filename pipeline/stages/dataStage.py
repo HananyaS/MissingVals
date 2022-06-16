@@ -6,26 +6,31 @@ from typing import List
 class DataStage(Stage):
     _additional_tasks: List[str] = ["load", "norm", "get_train", "get_test", "get_val"]
 
-    def __init__(self, task: str, **kwargs):
+    def __init__(self, **kwargs):
         self._tasks.extend(self._additional_tasks)
-        assert task in self._tasks, f"Unknown task:\t{task}"
-        super().__init__(task=task, **kwargs)
+        super().__init__(**kwargs)
 
-    def run(self, input_: str):
+    # def run(self, input_: str):
+    def _run(self, *args, **kwargs):
         if self.task == "load":
-            return self._load(input_, **self.run_kwargs)
+            # return self._load(input_, **self.run_kwargs)
+            return self._load(*args, **kwargs, **self.run_kwargs)
 
         if self.task == "norm":
-            return self._norm(input_, **self.run_kwargs)
+            # return self._norm(input_, **self.run_kwargs)
+            return self._norm(*args, **kwargs, **self.run_kwargs)
 
         if self.task == "get_train":
-            return self._get_train(input_, **self.run_kwargs)
+            return self._get_train(*args, **kwargs, **self.run_kwargs)
+            # return self._get_train(input_, **self.run_kwargs)
 
         if self.task == "get_test":
-            return self._get_test(input_, **self.run_kwargs)
+            return self._get_test(*args, **kwargs, **self.run_kwargs)
+            # return self._get_test(input_, **self.run_kwargs)
 
         if self.task == "get_val":
-            return self._get_val(input_, **self.run_kwargs)
+            return self._get_val(*args, **kwargs, **self.run_kwargs)
+            # return self._get_val(input_, **self.run_kwargs)
 
         raise ValueError(f"Unknown task:\t{self.task}")
 

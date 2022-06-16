@@ -230,3 +230,6 @@ class AbstractNN(nn.Module, AbstractModel):
         labels = labels_from_loader(loader)
 
         return roc_auc_score(labels, preds)
+
+    def __str__(self):
+        return "BaseModel"
