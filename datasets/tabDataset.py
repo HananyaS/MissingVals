@@ -43,9 +43,6 @@ class TabDataset:
             add_existence_cols=add_existence_cols,
         )
 
-        # if normalize:
-        #     _, mu, sigma = self.train.zscore(inplace=True)
-
         if self.test_exists:
             assert train_X.shape[1] == test_X.shape[1]
             self.test = TDP(
@@ -53,8 +50,6 @@ class TabDataset:
                 Y=test_Y,
                 name=f"{name} - test",
                 normalize=False,
-                # normalize=normalize,
-                # normalization_params=None if not normalize else (mu, sigma),
                 shuffle=shuffle,
                 add_existence_cols=add_existence_cols,
             )
@@ -216,6 +211,7 @@ def test():
         add_existence_cols=True,
     )
 
+    td.zscore()
     td.drop_existence_cols()
     print(td)
 
