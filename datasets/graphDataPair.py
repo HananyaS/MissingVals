@@ -34,7 +34,7 @@ class GraphDataPair(TabDataPair):
         weights: bool = False,
     ) -> torch.Tensor:
         required_edge_dim = 2 if not weights else 3
-        assert len(edges.shape) == 2, "edges must be a 2D array"
+        assert len(edges.shape) == 2, "edges_list must be a 2D array"
         assert given_as_adj or required_edge_dim in edges.shape
         assert not given_as_adj or edges.shape[0] == edges.shape[1]
 

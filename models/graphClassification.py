@@ -14,7 +14,7 @@ class ValuesAndGraphStructure(AbstractNN):
         feature_size: int = None,
         RECEIVED_PARAMS: dict = None,
         device: torch.device = torch.device("cpu"),
-        num_classes=1,
+        num_classes: int = 1,
         input_example=None,
     ):
         super(ValuesAndGraphStructure, self).__init__(device=device)

@@ -1,4 +1,4 @@
-from abstractDist import AbstractDist
+from tools.distance.abstractDist import AbstractDist
 import torch
 import numpy as np
 

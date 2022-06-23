@@ -107,7 +107,7 @@ if __name__ == "__main__":
     x = x.numpy()
     old_x = x
 
-    # edges = (torch.randn(100, 100) > torch.nanmean(x).item()).long()  # uncomment for numpy
+    # edges_list = (torch.randn(100, 100) > torch.nanmean(x).item()).long()  # uncomment for numpy
     edges = (torch.randn(100, 100) > np.nanmean(x)).long()
 
     gfp = GFP(iters=10, eps=1e-4)

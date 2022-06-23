@@ -12,6 +12,7 @@ class Stage(ABC):
         run_kwargs: dict = {},
         input_from: dict = None,
         store_in: str = None,
+        force_store: bool = True,
         *args,
         **kwargs,
     ):
@@ -25,11 +26,9 @@ class Stage(ABC):
         self.run_kwargs = run_kwargs
         self.input_from = input_from
         self.store_in = store_in
+        self.force_store = force_store
 
     def run(self, *args, **kwargs):
-        # if self.input_from is not None:
-        #     return self._run(**self.input_from)
-
         return self._run(*args, **kwargs)
 
     @abstractmethod

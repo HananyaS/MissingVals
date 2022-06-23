@@ -205,3 +205,9 @@ class TabDataPair(Dataset):
             name=f'{name} - {"".join(data_file_name.split(".")[:-1])}',
             **kwargs,
         )
+
+    def set_X(self, X):
+        self.X = X
+
+    def set_Y(self, Y):
+        self.Y = Y

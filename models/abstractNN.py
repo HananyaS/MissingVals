@@ -29,7 +29,7 @@ class AbstractNN(nn.Module, AbstractModel):
         raise NotImplementedError
 
     def forward_last_layer(self, *args, **kwargs):
-        return self.forward_last_layer(*args, **kwargs)
+        return self._forward_last_layer(*args, **kwargs)
 
     def forward(self, *args, **kwargs):
         x = self.forward_one_before_last_layer(*args, **kwargs)

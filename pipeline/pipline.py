@@ -38,9 +38,6 @@ class Pipeline:
         return Pipeline(f"{self.name} -> {other.name}", *self.stages, *other.stages)
 
     def run(self, *init_args, **init_kwargs):
-        # def run(self, _input: Any, verbose: bool = False):
-        #     res = _input
-
         is_first = True
         for i, stage in enumerate(self.stages):
             try:
@@ -53,18 +50,25 @@ class Pipeline:
 
                 elif stage.input_from is not None:
                     for var in stage.input_from.values():
-                        assert var in self.cache.keys(), f'Var "{var}" not found in cache'
+                        assert (
+                            var in self.cache.keys()
+                        ), f'Var "{var}" not found in cache'
 
-                    input_ = {param: self.cache[var] for param, var in stage.input_from.items()}
+                    input_ = {
+                        param: self.cache[var]
+                        for param, var in stage.input_from.items()
+                    }
                     res = stage(**input_)
 
                 else:
                     res = stage(res)
 
                 if stage.store_in is not None:
-                    assert (
-                        stage.store_in not in self.cache.keys()
-                    ), f"Var {stage.store_in} already in cache"
+                    if not stage.force_store:
+                        assert (
+                            stage.store_in not in self.cache.keys()
+                        ), f"Var {stage.store_in} already in cache"
+
                     self.cache[stage.store_in] = res
 
             except Exception as e:

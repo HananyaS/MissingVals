@@ -77,7 +77,7 @@ class GFP:
         """
         building the A hat Matrix
         :nodes_num: number of the nodes in tha graph
-        :edges: edge index matrix
+        :edges_list: edge index matrix
         """
         # make sure the we using the right dimensions
         edges = edges.to(CPU) if edges.size()[0] == TWO else edges.T.to(CPU)
@@ -106,8 +106,8 @@ class GFP:
     def define_index(self, X):
         """
         define index (if the object didnt get one)
-        in this case, each 0 value in X defined as missing values
-        :X: feature matrix
+        in this case, each 0 value in X_list defined as missing values
+        :X_list: feature matrix
         """
         if type(self.index) != BOOL:
             return None
@@ -119,11 +119,11 @@ class GFP:
     def prop(self, X, edges):
         """
         feature propagation
-        :X: feature matrix
-        :edges: edges index
-        :return: X hat - with propagate features
+        :X_list: feature matrix
+        :edges_list: edges_list index
+        :return: X_list hat - with propagate features
         """
-        # convert feature & edges to torch tensors
+        # convert feature & edges_list to torch tensors
         X = torchify(X, self.device).float()
         edges = torchify(edges, self.device)
 
@@ -135,7 +135,7 @@ class GFP:
         old_mat = X
         for i in range(self.iters):
 
-            # updating X
+            # updating X_list
             AX = torch.sparse.mm(self.A_hat, X)
             X = torch.where(self.index, AX, old_mat)
 
