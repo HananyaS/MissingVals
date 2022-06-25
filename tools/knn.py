@@ -1,5 +1,5 @@
-from distance.heur_euc import HeurEuc
-from distance.euclidian import EuclidianDist
+from tools.distance.heur_euc import HeurEuc
+from tools.distance.euclidian import EuclidianDist
 
 import numpy as np
 import torch
@@ -78,7 +78,7 @@ class KNN:
             edges = np.array(edges).astype(int)
             return edges
 
-        if return_type == torch.LongTensor:
+        if issubclass(return_type, torch.Tensor):
             return torch.from_numpy(edges).long()
 
         raise NotImplementedError(

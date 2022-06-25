@@ -1,11 +1,25 @@
 from pipeline.pipline import Pipeline
 from pipeline.stages.dataStage import DataStage
 from pipeline.stages.mlModelStage import MLModelStage
+from pipeline.stages.gfpStage import GFPStage
 from models.xgb import XGBoost
 from models.graphClassification import ValuesAndGraphStructure as VGS
 
-loadData = DataStage(name="Load Data", task="load", run_kwargs={"normalize": False})
+loadData = DataStage(
+    name="Load Data",
+    task="load",
+    run_kwargs={"normalize": False, "add_existence_cols": True},
+)
 normData = DataStage(name="Normalize Data", task="norm", store_in="dataset")
+
+gfpBuild = GFPStage(name="GFPBuilder", task="build", store_in="gfp")
+
+gfpProp = GFPStage(
+    name="GFPProp",
+    task="prop",
+    input_from={"gfp_obj": "gfp", "data": "dataset"},
+    run_kwargs={"distance": "heur_dist"},
+)
 
 getTrain = DataStage(
     name="Get Train",
@@ -44,14 +58,24 @@ xgbEval = MLModelStage(
     store_in="test_results",
 )
 
+
 pipe = Pipeline(
     name="Test",
     verbose=True,
-    stages=[loadData, normData, getTrain, getTest, xgbBuilder, xgbFit, xgbEval],
+    stages=[
+        loadData,
+        normData,
+        gfpBuild,
+        gfpProp,
+        getTrain,
+        getTest,
+        xgbBuilder,
+        xgbFit,
+        xgbEval,
+    ],
 )
 
 print(pipe)
-
-data_dir = "../../data/Banknote/processed/90"
+data_dir = "../../data/RoysData/processed"
 model = pipe(data_dir)
 print(model)

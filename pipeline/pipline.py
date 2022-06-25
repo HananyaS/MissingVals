@@ -96,6 +96,13 @@ class Pipeline:
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
 
+    def from_cache(self, key: str):
+        try:
+            return self.cache[key]
+
+        except Exception:
+            raise Exception("Variable not in cache!")
+
 
 if __name__ == "__main__":
     pipe1 = Pipeline.empty_pipeline("Test 1")

@@ -54,8 +54,8 @@ class GFP:
         return None
 
     def define_index(self, X):
-        if type(self.index) != bool:
-            return None
+        # if type(self.index) != bool:
+        #     return None
 
         self.index = (
             ((X == 0).long() + (X != X).long()).bool()
