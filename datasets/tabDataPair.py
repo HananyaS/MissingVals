@@ -27,6 +27,9 @@ class TabDataPair(Dataset):
         self.X = self._transform_types(X, float)
         self.Y = self._transform_types(Y, int) if Y is not None else None
 
+        self.normalized = False
+        self.norm_params = None
+
         if normalize:
             self.zscore(normalization_params, inplace=True, return_params=False)
 
@@ -94,6 +97,10 @@ class TabDataPair(Dataset):
         inplace: bool = True,
         return_params: bool = False,
     ):
+        if self.normalized:
+            print("Data is already normalize!")
+            return self.X if not inplace else self
+
         if params is not None:
             mu, sigma = params
             assert len(mu) == len(sigma) == self.X.shape[1]
@@ -103,6 +110,9 @@ class TabDataPair(Dataset):
             sigma = torch.from_numpy(np.nanstd(self.X.cpu().detach().numpy(), axis=0))
 
         if inplace:
+            self.normalized = True
+            self.norm_params = (mu, sigma)
+
             self.X = (self.X - mu) / sigma
 
             if return_params:
@@ -114,6 +124,23 @@ class TabDataPair(Dataset):
             return (self.X - mu) / sigma, mu, sigma
 
         return (self.X - mu) / sigma
+
+    def denormalize(self, inplace: bool = True):
+        if not self.normalized:
+            print("Data isn't normalize!")
+            return self.X if not inplace else self
+
+        mu, sigma = self.norm_params
+        denorm_ = self.X * sigma + mu
+
+        if inplace:
+            self.normalized = False
+            self.norm_params = None
+
+            self.X = denorm_
+            return self
+
+        return denorm_
 
     def fill_na(self, inplace: bool = True):
         if inplace:
@@ -140,12 +167,12 @@ class TabDataPair(Dataset):
         if fill_na_first:
             df = df.fillna(df.mean())
 
-        corr = df.corr()
+        corr = df.corr().fillna(0)
 
         if abs_:
             corr = abs(corr)
 
-        return corr
+        return corr.values
 
     def add_existence_cols(self, inplace: bool = True):
         assert len(self.existence_cols) == 0, "Existence columns were already added!"

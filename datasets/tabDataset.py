@@ -7,12 +7,13 @@ import torch
 from torch.utils.data import DataLoader
 
 from typing import Union
-from datasets.tabDataPair import TabDataPair as TDP
+from datasets.tabDataPair import TabDataPair
 
 
 class TabDataset:
     _input_types = Union[torch.Tensor, np.ndarray]
 
+    """
     def __init__(
         self,
         train_X: _input_types,
@@ -32,9 +33,9 @@ class TabDataset:
         self.test_exists = test_X is not None
         self.val_exists = val_X is not None
         self.name = name
-        self.normalized = normalize
+        self.normalize = normalize
 
-        self.train = TDP(
+        self.train = TabDataPair(
             X=train_X,
             Y=train_Y,
             name=f"{name} - train",
@@ -45,7 +46,7 @@ class TabDataset:
 
         if self.test_exists:
             assert train_X.shape[1] == test_X.shape[1]
-            self.test = TDP(
+            self.test = TabDataPair(
                 X=test_X,
                 Y=test_Y,
                 name=f"{name} - test",
@@ -56,7 +57,7 @@ class TabDataset:
 
         if self.val_exists:
             assert train_X.shape[1] == val_X.shape[1]
-            self.val = TDP(
+            self.val = TabDataPair(
                 X=val_X,
                 Y=val_Y,
                 name=f"{name} - val",
@@ -67,21 +68,144 @@ class TabDataset:
 
         if normalize:
             self.zscore()
+    """
+
+    def __init__(
+        self,
+        name: str,
+        train: TabDataPair,
+        test: TabDataPair = None,
+        val: TabDataPair = None,
+        normalize: bool = False,
+    ):
+        self.name = name
+        self.normalized = False
+
+        self.train = train
+        self.test_exists = test is not None
+        self.val_exists = val is not None
+
+        if self.test_exists:
+            assert (
+                test.get_num_features() == train.get_num_features()
+            ), "Test doesn't have the same number of features as in train"
+            self.test = test
+            self.test.denormalize(inplace=True)
+
+        if self.val_exists:
+            assert (
+                val.get_num_features() == train.get_num_features()
+            ), "Validation doesn't have the same number of features as in train"
+            self.val = val
+            self.val.denormalize(inplace=True)
+
+        if normalize:
+            self.zscore()
+
+    @classmethod
+    def from_attributes(
+        cls,
+        name: str,
+        train_X: _input_types,
+        train_Y: _input_types = None,
+        test_X: _input_types = None,
+        test_Y: _input_types = None,
+        val_X: _input_types = None,
+        val_Y: _input_types = None,
+        shuffle: bool = False,
+        add_existence_cols: bool = False,
+        normalize: bool = True,
+    ):
+        assert test_X is not None or test_Y is None
+        assert val_X is not None or val_Y is None
+
+        train = TabDataPair(
+            X=train_X,
+            Y=train_Y,
+            name=f"{name} - train",
+            normalize=False,
+            shuffle=shuffle,
+            add_existence_cols=add_existence_cols,
+        )
+
+        if test_X is not None:
+            test = TabDataPair(
+                X=test_X,
+                Y=test_Y,
+                name=f"{name} - test",
+                normalize=False,
+                shuffle=shuffle,
+                add_existence_cols=add_existence_cols,
+            )
+        else:
+            test = None
+
+        if val_X is not None:
+            val = TabDataPair(
+                X=val_X,
+                Y=val_Y,
+                name=f"{name} - val",
+                normalize=False,
+                shuffle=shuffle,
+                add_existence_cols=add_existence_cols,
+            )
+
+        else:
+            val = None
+
+        return cls(name=name, train=train, test=test, val=val, normalize=normalize)
 
     def __str__(self):
-        return f'Dataset "{self.name}" contains {self.train.X.shape[1]} features, including train {f", test" if self.test_exists else ""}, {f"val" if self.val_exists else ""}'
+        sets = ["train"]
+
+        if self.test_exists:
+            sets.append("test")
+
+        if self.val_exists:
+            sets.append("val")
+
+        return f'Dataset "{self.name}" contains {self.train.X.shape[1]} features, including {", ".join(sets)}'
 
     def zscore(self):
+        if self.normalized:
+            print("Data is already normalize!")
+            return self
+
+        if self.train.normalized:
+            self.train.denormalize(inplace=True)
+
+        _, mu, sigma = self.train.zscore(inplace=True, return_params=True)
+
+        if self.test_exists:
+            if self.test.normalized:
+                self.test.denormalize(inplace=True)
+
+            self.test.zscore(inplace=True, params=(mu, sigma))
+
+        if self.val_exists:
+            if self.val.normalized:
+                self.val.denormalize(inplace=True)
+
+            self.val.zscore(inplace=True, params=(mu, sigma))
+
+        self.normalized = True
+
+        return self
+
+    def denormalize(self):
         if not self.normalized:
-            _, mu, sigma = self.train.zscore(inplace=True, return_params=True)
+            print("Data isn't normalize!")
+            return self
 
-            if self.test_exists:
-                self.test.zscore(inplace=True, params=(mu, sigma))
+        self.train.denormalize(inplace=True)
 
-            if self.val_exists:
-                self.val.zscore(inplace=True, params=(mu, sigma))
+        if self.test_exists:
+            self.test.denormalize(inplace=True)
 
-            self.normalized = True
+        if self.val_exists:
+            self.val.denormalize(inplace=True)
+
+        self.normalized = False
 
         return self
 
@@ -189,7 +313,7 @@ class TabDataset:
             val_Y = None
             val_X = None
 
-        return cls(
+        return cls.from_attributes(
             train_X=train_X,
             train_Y=train_Y,
             test_X=test_X,
@@ -217,4 +341,5 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
+    t = test()
+    print()

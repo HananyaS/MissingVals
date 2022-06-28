@@ -1,8 +1,10 @@
 import torch
-from graphDataPair import GraphDataPair
+from datasets.graphDataPair import GraphDataPair
 
 import numpy as np
 from typing import List, Union, Tuple
+
+from tools.data.tab2graph import tab2graphs
 
 
 class GraphsDataPair:
@@ -24,6 +26,8 @@ class GraphsDataPair:
     ):
         self.name = name
         self.normalized = False
+        self.norm_params = None
+
         self.add_existence_cols = add_existence_cols
 
         self._create_graph_list(
@@ -37,11 +41,20 @@ class GraphsDataPair:
         )
 
         if normalize:
-            self.zcore(normalization_params=normalization_params, inplace=True)
+            self.zscore(normalization_params=normalization_params, inplace=True)
             self.normalized = True
 
         if shuffle:
             self._shuffle()
+
+    @classmethod
+    def from_tab(cls, **kwargs):
+        graph_kwargs, normalized, norm_params = tab2graphs(**kwargs)
+        gd = cls(**graph_kwargs)
+        gd.normalized = normalized
+        gd.norm_params = norm_params
+
+        return gd
 
     def _create_graph_list(
         self,
@@ -52,6 +65,7 @@ class GraphsDataPair:
     ):
         graphs_lst = []
         Y_exist = Y_list is not None
+
         to_iterate = (
             zip(X_attr_list, edges_list, Y_list)
             if Y_exist
@@ -60,7 +74,7 @@ class GraphsDataPair:
 
         first_graph = True
 
-        for i, *params in to_iterate:
+        for i, params in enumerate(to_iterate):
             if Y_exist:
                 X_attr, edges, Y = params
             else:
@@ -68,9 +82,9 @@ class GraphsDataPair:
                 Y = None
 
             g = GraphDataPair(
-                X=X_attr,
+                X=X_attr.view(1, -1),
                 edges=edges,
-                Y=Y,
+                Y=Y.view(1, -1),
                 normalize=False,
                 shuffle=False,
                 **kwargs,
@@ -92,20 +106,20 @@ class GraphsDataPair:
                     all_Y = torch.cat((all_Y, g.Y.unsqueeze(0)), dim=0)
 
         self.graph_list = graphs_lst
-        self.X = all_X
+        self.X = torch.squeeze(all_X, 1)
         self.edges = all_edges
-        self.Y = all_Y
+        self.Y = torch.squeeze(all_Y, 1)
 
         return graphs_lst
 
-    def zcore(
+    def zscore(
         self,
         normalization_params: Tuple[List, List] = None,
         inplace: bool = False,
         return_params: bool = False,
     ):
         if self.normalized:
-            print("Dataset already normalized")
+            print("Data is already normalize!")
             return self if inplace else self.X
 
         if normalization_params is None:
@@ -117,12 +131,32 @@ class GraphsDataPair:
         X_ = (self.X - normalization_params[0]) / normalization_params[1]
 
         if inplace:
+            self.normalized = True
+            self.norm_params = normalization_params
+
             self.X = X_
 
         if return_params:
             return normalization_params
 
         return X_ if not inplace else self
+
+    def denormalize(self, inplace: bool = True):
+        if not self.normalized:
+            print("Data isn't normalize!")
+            return self.X if not inplace else self
+
+        mu, sigma = self.norm_params
+        denorm_ = self.X * sigma + mu
+
+        if inplace:
+            self.normalized = False
+            self.norm_params = None
+
+            self.X = denorm_
+            return self
+
+        return denorm_
 
     def _shuffle(self):
         indices = torch.randperm(len(self.X))
@@ -153,11 +187,7 @@ class GraphsDataPair:
 
     @property
     def num_nodes(self):
-        return self.X.shape[1]
-
-    @property
-    def num_edges(self):
-        return self.edges.shape[1]
+        return self.X.shape[0]
 
     @property
     def num_classes(self):
@@ -165,9 +195,9 @@ class GraphsDataPair:
             print("No classes in dataset")
             return None
 
-        return self.Y.shape[1]
+        return len(np.unique(self.Y))
 
     @property
     def num_features(self):
-        return self.X.shape[2]
+        return self.X.shape[1]
 

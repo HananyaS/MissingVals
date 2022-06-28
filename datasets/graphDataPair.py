@@ -1,12 +1,15 @@
 import torch
-from tabDataPair import TabDataPair
-from typing import Type
+import numpy as np
+from datasets.tabDataPair import TabDataPair
+from typing import Type, Union
 
 
 class GraphDataPair(TabDataPair):
+    _input_types = Union[np.ndarray, torch.Tensor]
+
     def __init__(
         self,
-        edges: super()._input_types,
+        edges: _input_types,
         given_as_adj: bool = False,
         store_as_adj: bool = False,
         include_edge_weights: bool = False,
@@ -28,7 +31,7 @@ class GraphDataPair(TabDataPair):
 
     @staticmethod
     def _transform_edge_format(
-        edges: super()._input_types,
+        edges: _input_types,
         given_as_adj: bool,
         store_as_adj: bool = False,
         weights: bool = False,
