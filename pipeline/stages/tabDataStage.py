@@ -3,7 +3,7 @@ from pipeline.stage import Stage
 from typing import List
 
 
-class DataStage(Stage):
+class TabDataStage(Stage):
     _additional_tasks: List[str] = ["load", "norm", "get_train", "get_test", "get_val"]
 
     def __init__(self, **kwargs):
@@ -49,4 +49,4 @@ class DataStage(Stage):
         return data.get_val_data(**kwargs)
 
     def __str__(self):
-        return f"Data Stage {self.id}\t{self.name}"
+        return f"Tabular Data Stage {self.id}\t{self.name}"

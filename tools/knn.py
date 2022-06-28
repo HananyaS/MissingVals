@@ -78,7 +78,7 @@ class KNN:
             edges = np.array(edges).astype(int)
             return edges
 
-        if issubclass(return_type, torch.Tensor):
+        if return_type in [torch.LongTensor, torch.FloatTensor]:
             return torch.from_numpy(edges).long()
 
         raise NotImplementedError(

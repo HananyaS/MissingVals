@@ -18,7 +18,7 @@ class GFP:
         iters: int = 50,
         eps: float = 1e-3,
         delta_func: Callable = rmse,
-        early_stop: bool = True,
+        early_stop: bool = False,
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

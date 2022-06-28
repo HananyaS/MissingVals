@@ -1,35 +1,48 @@
 from pipeline.pipline import Pipeline
-from pipeline.stages.dataStage import DataStage
+from pipeline.stages.tabDataStage import TabDataStage
 from pipeline.stages.mlModelStage import MLModelStage
 from pipeline.stages.gfpStage import GFPStage
 from models.xgb import XGBoost
+from pipeline.stages.graphDataStage import GraphDataStage
 from models.graphClassification import ValuesAndGraphStructure as VGS
 
-loadData = DataStage(
+loadData = TabDataStage(
     name="Load Data",
     task="load",
     run_kwargs={"normalize": False, "add_existence_cols": True},
 )
-normData = DataStage(name="Normalize Data", task="norm", store_in="dataset")
 
-gfpBuild = GFPStage(name="GFPBuilder", task="build", store_in="gfp")
+normData = TabDataStage(name="Normalize Data", task="norm", store_in="dataset")
 
-gfpProp = GFPStage(
-    name="GFPProp",
-    task="prop",
-    input_from={"gfp_obj": "gfp", "data": "dataset"},
-    run_kwargs={"distance": "heur_dist"},
+# gfpBuild = GFPStage(name="GFPBuilder", task="build", store_in="gfp")
+
+# gfpProp = GFPStage(
+#     name="GFPProp",
+#     task="prop",
+#     input_from={"gfp_obj": "gfp", "data": "dataset"},
+#     run_kwargs={"distance": "heur_dist"},
+# )
+
+tab2Graph = GraphDataStage(
+    name="Tab2Graph",
+    task="from_tab",
+    input_from={"tab_data": "dataset"},
+    store_in="dataset",
+    force_store=True,
+    run_kwargs={"knn_kwargs": {"distance": "heur_dist"}},
 )
 
-getTrain = DataStage(
+getTrain = TabDataStage(
+# getTrain = GraphDataStage(
     name="Get Train",
     task="get_train",
-    run_kwargs={"as_loader": True, "batch_size": 32},
+    # run_kwargs={"as_loader": True, "batch_size": 32},
     input_from={"data": "dataset"},
     store_in="train_loader",
 )
 
-getTest = DataStage(
+getTest = TabDataStage(
+# getTest = GraphDataStage(
     name="Get Test",
     task="get_test",
     run_kwargs={"as_loader": True, "batch_size": 32},
@@ -65,17 +78,19 @@ pipe = Pipeline(
     stages=[
         loadData,
         normData,
-        gfpBuild,
-        gfpProp,
+        # gfpBuild,
+        # gfpProp,
+        # tab2Graph,
         getTrain,
         getTest,
-        xgbBuilder,
-        xgbFit,
-        xgbEval,
+        # xgbBuilder,
+        # xgbFit,
+        # xgbEval,
     ],
 )
 
 print(pipe)
-data_dir = "../../data/RoysData/processed"
-model = pipe(data_dir)
-print(model)
+data_dir = "../../data/Banknote/processed/90"
+res = pipe(data_dir)
+
+pipe.print_cache()

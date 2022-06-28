@@ -103,6 +103,15 @@ class Pipeline:
         except Exception:
             raise Exception("Variable not in cache!")
 
+    def print_cache(self):
+        if len(self.cache) == 0:
+            print("Empty cache.")
+
+        else:
+            print("Cache:")
+            for k, v in self.cache.items():
+                print(f"{k} -> {v}")
+
 
 if __name__ == "__main__":
     pipe1 = Pipeline.empty_pipeline("Test 1")
