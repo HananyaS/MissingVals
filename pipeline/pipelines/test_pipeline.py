@@ -36,7 +36,7 @@ getTrain = TabDataStage(
 # getTrain = GraphDataStage(
     name="Get Train",
     task="get_train",
-    # run_kwargs={"as_loader": True, "batch_size": 32},
+    run_kwargs={"as_loader": True, "batch_size": 32},
     input_from={"data": "dataset"},
     store_in="train_loader",
 )
@@ -83,9 +83,9 @@ pipe = Pipeline(
         # tab2Graph,
         getTrain,
         getTest,
-        # xgbBuilder,
-        # xgbFit,
-        # xgbEval,
+        xgbBuilder,
+        xgbFit,
+        xgbEval,
     ],
 )
 

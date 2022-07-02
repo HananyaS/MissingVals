@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import one_hot
 from .abstractNN import AbstractNN
-from typing import Union
+from typing import Union, Type, List
 from torch.utils.data import DataLoader
-from datasets.tabDataset import TabDataset
+from datasets.graphsDataset import GraphsDataset
 
 
 class ValuesAndGraphStructure(AbstractNN):
@@ -12,10 +12,16 @@ class ValuesAndGraphStructure(AbstractNN):
         self,
         nodes_number: int = None,
         feature_size: int = None,
-        RECEIVED_PARAMS: dict = None,
+        RECEIVED_PARAMS: dict = {
+            "preweight": 5,
+            "layer_1": 9,
+            "layer_2": 7,
+            "activation": "elu",
+            "dropout": 0,
+        },
         device: torch.device = torch.device("cpu"),
         num_classes: int = 1,
-        input_example=None,
+        input_example: Union[DataLoader, GraphsDataset] = None,
     ):
         super(ValuesAndGraphStructure, self).__init__(device=device)
 
@@ -28,6 +34,7 @@ class ValuesAndGraphStructure(AbstractNN):
 
         self.device = device
         self.RECEIVED_PARAMS = RECEIVED_PARAMS
+        self.num_classes = num_classes
 
         # self.pre_weighting = nn.Linear(self.feature_size, int(self.RECEIVED_PARAMS["preweight"]))
         self.pre_weighting = nn.Linear(1, int(self.RECEIVED_PARAMS["preweight"]))
@@ -64,14 +71,17 @@ class ValuesAndGraphStructure(AbstractNN):
             self.activation_func_dict[self.activation_func],
         )
 
-    def init_attributes(self, input_example: Union[DataLoader, TabDataset]):
+    def init_attributes(
+        self,
+        input_example: Union[DataLoader, GraphsDataset],
+    ):
         if isinstance(input_example, DataLoader):
-            input_example = input_example.dataset
+            input_example = input_example.dataset.gdp
 
         self.feature_size = 1
-        self.nodes_number = input_example.get_num_features()
+        self.nodes_number = input_example.num_features
 
-    def _forward_one_before_last_layer(self, x, adjacency_matrix):
+    def _forward_one_before_last_layer(self, x, adjacency_matrix, *args):
         # multiply the matrix adjacency_matrix by (learnt scalar) self.alpha
         a, b, c = adjacency_matrix.shape
         I = torch.eye(b).to(self.device)
@@ -89,7 +99,7 @@ class ValuesAndGraphStructure(AbstractNN):
         x = self.classifier(x)
         return x
 
-    def _forward_last_layer(self, x):
+    def _forward_last_layer(self, x, *args):
         x = self.fc3(x)
         x = nn.Sigmoid()(x)
         return x
@@ -122,8 +132,11 @@ class ValuesAndGraphStructure(AbstractNN):
         )
         return normalized_adjacency
 
-    def _transform_input(self, data: torch.Tensor):
+    def _transform_input(self, data: Union[Type[torch.Tensor], List]):
         xs, adjs, labels = data
+
+        if len(xs.shape) == 3 and xs.shape[-1] == 1:
+            xs = torch.squeeze(xs, -1)
         return [xs, adjs], labels
 
     def _eval_loss(
@@ -134,6 +147,12 @@ class ValuesAndGraphStructure(AbstractNN):
         n_classes: int = 2,
     ) -> torch.nn.modules.loss:
         labels = one_hot(labels.long(), num_classes=n_classes).float()
-        output = torch.cat([output, 1 - output], dim=1)
-        loss = loss_func(output, labels)
+        # output = torch.cat([output, 1 - output], dim=1)
+        loss = loss_func(output, labels.squeeze(1))
         return loss
+
+    def get_num_classes(self):
+        return self.num_classes + 1 if self.num_classes == 1 else self.num_classes
+
+    def _transform_output(self, output):
+        return torch.cat([output, 1 - output], dim=1)

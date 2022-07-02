@@ -5,6 +5,7 @@ import numpy as np
 from typing import List, Union, Tuple
 
 from tools.data.tab2graph import tab2graphs
+from torch.utils.data import Dataset, DataLoader
 
 
 class GraphsDataPair:
@@ -82,9 +83,9 @@ class GraphsDataPair:
                 Y = None
 
             g = GraphDataPair(
-                X=X_attr.view(1, -1),
+                X=X_attr.view(-1, 1),
                 edges=edges,
-                Y=Y.view(1, -1),
+                Y=Y.view(1, 1),
                 normalize=False,
                 shuffle=False,
                 **kwargs,
@@ -94,21 +95,22 @@ class GraphsDataPair:
 
             if first_graph:
                 all_X = g.X.unsqueeze(0)
-                all_edges = g.edges.unsqueeze(0)
+                all_edges = g.edges_to_adj(inplace=False).unsqueeze(0)
                 all_Y = g.Y.unsqueeze(0) if Y_exist else None
 
                 first_graph = False
 
             else:
                 all_X = torch.cat((all_X, g.X.unsqueeze(0)), dim=0)
-                all_edges = torch.cat((all_edges, g.edges.unsqueeze(0)), dim=0)
+
+                all_edges = torch.cat((all_edges, g.edges_to_adj(inplace=False).unsqueeze(0)), dim=0)
                 if Y_exist:
                     all_Y = torch.cat((all_Y, g.Y.unsqueeze(0)), dim=0)
 
         self.graph_list = graphs_lst
         self.X = torch.squeeze(all_X, 1)
+        self.Y = None if not Y_exist else torch.squeeze(all_Y, 1)
         self.edges = all_edges
-        self.Y = torch.squeeze(all_Y, 1)
 
         return graphs_lst
 
@@ -147,7 +149,7 @@ class GraphsDataPair:
             return self.X if not inplace else self
 
         mu, sigma = self.norm_params
-        denorm_ = self.X * sigma + mu
+        denorm_ = self.X * sigma.view(*self.X.shape[1:]) + mu.view(*self.X.shape[1:])
 
         if inplace:
             self.normalized = False
@@ -172,6 +174,23 @@ class GraphsDataPair:
     def __getitem__(self, index):
         return self.graph_list[index]
 
+    def to_loader(self, **kwargs):
+        class GraphsDataset(Dataset):
+            def __init__(self, gdp: GraphsDataPair):
+                self.gdp = gdp
+
+            def __getitem__(self, idx):
+                if self.gdp.Y is not None:
+                    return self.gdp.X[idx], self.gdp.edges[idx], self.gdp.Y[idx]
+
+                return self.gdp.X, self.gdp.edges[idx]
+
+            def __len__(self):
+                return len(self.gdp)
+            
+        ds = GraphsDataset(self)
+        return DataLoader(ds, **kwargs)
+
     def __len__(self):
         return len(self.graph_list)
 
@@ -180,6 +199,15 @@ class GraphsDataPair:
 
     def __str__(self):
         return self.__repr__()
+
+    def get_X(self):
+        return self.X
+
+    def get_Y(self):
+        return self.Y
+
+    def get_edges(self):
+        return self.edges
 
     @property
     def num_graphs(self):
@@ -200,4 +228,3 @@ class GraphsDataPair:
     @property
     def num_features(self):
         return self.X.shape[1]
-

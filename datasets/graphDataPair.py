@@ -9,16 +9,21 @@ class GraphDataPair(TabDataPair):
 
     def __init__(
         self,
+        X: _input_types,
         edges: _input_types,
+        Y: _input_types = None,
         given_as_adj: bool = False,
         store_as_adj: bool = False,
         include_edge_weights: bool = False,
         **kwargs,
     ):
-        super(GraphDataPair, self).__init__(**kwargs)
+        Y_ = torch.ones((X.shape[0], 1)) * Y[0]
+        super(GraphDataPair, self).__init__(X=X, Y=Y_, **kwargs)
+        self.Y = Y
         self.edges = self._transform_types(
             edges, Type[float] if include_edge_weights else Type[int]
         )
+
         self.edges = self._transform_edge_format(
             self.edges,
             given_as_adj=given_as_adj,
@@ -89,7 +94,7 @@ class GraphDataPair(TabDataPair):
             return self if inplace else self.edges
 
         adj = torch.zeros(self.X.shape[0], self.X.shape[0])
-        adj[self.edges[:, 0], self.edges[:, 1]] = (
+        adj[self.edges[:, 0].long(), self.edges[:, 1].long()] = (
             (self.edges[:, 2]) if self.include_edge_weights else 1
         )
         if inplace:
@@ -146,4 +151,3 @@ class GraphDataPair(TabDataPair):
         **kwargs,
     ):
         raise Exception("Cannot load graph data from a file")
-

@@ -119,7 +119,11 @@ class GraphsDataset:
         )
 
         graphs_dataset = cls(
-            train=train, val=val, test=test, normalize=False, name=f'{tab_data.name} - graph'
+            train=train,
+            val=val,
+            test=test,
+            normalize=False,
+            name=f"{tab_data.name} - graph",
         )
 
         graphs_dataset.normalized = tab_data.normalized
@@ -154,16 +158,31 @@ class GraphsDataset:
 
         return self
 
-    def get_train_data(self):
-        return self.train
+    def get_train_data(self, as_loader: bool = False, **kwargs):
+        train = self.train
+        if as_loader:
+            train = train.to_loader(**kwargs)
 
-    def get_test_data(self):
+        return train
+
+    def get_test_data(self, as_loader: bool = False, **kwargs):
         assert self.test_exists, "Test data is not available"
-        return self.test
 
-    def get_val_data(self):
+        test = self.test
+        if as_loader:
+            test = test.to_loader()
+
+        return test
+
+    def get_val_data(self, as_loader: bool = False, **kwargs):
         assert self.val_exists, "Validation data is not available"
-        return self.val
+
+        val = self.val
+
+        if as_loader:
+            val = val.to_loader()
+
+        return val
 
     def __str__(self):
         return f'Dataset "{self.name}" contains {self.train.X.shape[1]} features, including train {f", test" if self.test_exists else ""}, {f"val" if self.val_exists else ""}'
@@ -179,6 +198,7 @@ class GraphsDataset:
     def num_classes(self):
         return self.train.num_classes
 
+    """
     @property
     def num_train_nodes(self):
         return self.train.num_nodes
@@ -198,7 +218,7 @@ class GraphsDataset:
             return None
 
         return self.val.num_nodes
-
+    
     @property
     def num_train_edges(self):
         return self.train.num_edges
@@ -218,6 +238,8 @@ class GraphsDataset:
             return None
 
         return self.val.num_edges
+    
+    """
 
     @property
     def train_len(self):
@@ -238,3 +260,61 @@ class GraphsDataset:
             return None
 
         return len(self.val)
+
+
+if __name__ == "__main__":
+    from time import time
+    from models.graphClassification import ValuesAndGraphStructure
+
+    st = time()
+
+    data_dir = "../data/RoysData/processed/"
+
+    td = TabDataset.load(
+        data_dir=data_dir,
+        normalize=True,
+        shuffle=True,
+        add_existence_cols=False,
+    )
+
+    gd = GraphsDataset.from_tab(
+        td,
+        fill_data_method="gfp",
+        store_as_adj=True,
+        # knn_kwargs={"distance": "heur_dist", "dist_params": {"alpha": .5, "beta": .5}},
+    )
+
+    train = gd.get_train_data(as_loader=True, batch_size=32)
+    val = gd.get_val_data(as_loader=True, batch_size=32)
+    test = gd.get_test_data(as_loader=True, batch_size=32)
+
+    params = {
+        "preweight": 5,
+        "layer_1": 12,
+        "layer_2": 7,
+        "activation": "elu",
+        "dropout": 0.3,
+    }
+
+    model = ValuesAndGraphStructure(input_example=train, RECEIVED_PARAMS=params)
+
+    forward_args = model.transform_input(
+        [train.dataset.gdp.get_X(), train.dataset.gdp.get_edges(), None]
+    )
+    graph_embeddings = model.forward_one_before_last_layer(*forward_args[0])
+    print(len(graph_embeddings))
+    print(len(train.dataset))
+    # model.fit(
+    #     train_loader=train,
+    #     val_loader=val,
+    #     auc_plot_path="auc.png",
+    #     loss_plot_path="loss.png",
+    #     lr=0.01,
+    #     n_epochs=30,
+    #     verbose=True,
+    # )
+    #
+    # test_auc = model.evaluate(loader=test)
+    # print(f"Test AUC: {test_auc:.4f}")
+
+    print(f"Time elapsed: {time() - st} seconds")
