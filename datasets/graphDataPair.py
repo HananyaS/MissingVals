@@ -2,6 +2,11 @@ import torch
 import numpy as np
 from datasets.tabDataPair import TabDataPair
 from typing import Type, Union
+from torch.utils.data import DataLoader, Dataset
+
+from copy import deepcopy
+
+from tools.data.tab2graph import fill_data_gfp
 
 
 class GraphDataPair(TabDataPair):
@@ -33,6 +38,27 @@ class GraphDataPair(TabDataPair):
 
         self.include_edge_weights = include_edge_weights
         self.as_adj = store_as_adj
+
+    @classmethod
+    def from_tab(
+        cls,
+        tab_data: TabDataPair,
+        knn_kwargs: dict = {"distance": "euclidian", "k": 30},
+        gfp_kwargs: dict = {},
+        **kwargs,
+    ):
+        imputed_data_, inter_samples_edges = fill_data_gfp(
+            tab_data_=tab_data, knn_kwargs=knn_kwargs, gfp_kwargs=gfp_kwargs
+        )
+
+        return cls(
+            X=imputed_data_,
+            Y=tab_data.Y,
+            edges=inter_samples_edges,
+            given_as_adj=True,
+            include_edge_weights=False,
+            **kwargs,
+        )
 
     @staticmethod
     def _transform_edge_format(
@@ -73,21 +99,60 @@ class GraphDataPair(TabDataPair):
 
         return adj
 
-    @property
+    def __len__(self):
+        return len(self.X)
+
+    # @property
     def num_nodes(self):
         return self.X.shape[0]
 
-    @property
+    # @property
     def num_edges(self):
         return self.edges.shape[0]
 
-    @property
+    # @property
     def get_nodes(self):
         return self.X
 
-    @property
+    # @property
     def get_edges(self):
         return self.edges
+
+    def get_edge_weights(self):
+        if self.include_edge_weights:
+            return self.edges_to_adj(inplace=False)[:, 2]
+
+        raise Exception("Edge don't have weights!")
+
+    def to_loader(self, **kwargs):
+        class DS(Dataset):
+            def __init__(self, gdp: GraphDataPair):
+                self.gdp = gdp
+
+            def __getitem__(self, idx):
+                if self.gdp.include_edge_weights:
+                    res = (
+                        self.gdp.X,
+                        self.gdp.edges_to_lst(inplace=False)[:, :1],
+                        self.gdp.get_edge_weights(),
+                    )
+
+                else:
+                    res = (
+                        self.gdp.X,
+                        self.gdp.edges_to_lst(inplace=False),
+                    )
+
+                if self.gdp.Y is not None:
+                    res = *res, self.gdp.Y
+
+                return res
+
+            def __len__(self):
+                return len(self.gdp)
+
+        ds = DS(self)
+        return DataLoader(ds, batch_size=len(ds), **kwargs)
 
     def edges_to_adj(self, inplace: bool = True):
         if self.as_adj:
@@ -151,3 +216,26 @@ class GraphDataPair(TabDataPair):
         **kwargs,
     ):
         raise Exception("Cannot load graph data from a file")
+
+    def __add__(self, other):
+        assert self.include_edge_weights == other.include_edge_weights
+
+        n_self = self.get_num_samples()
+        as_adj = self.as_adj
+
+        self_ = deepcopy(self)
+        other_ = deepcopy(other)
+
+        self_.edges_to_lst(inplace=True)
+        other_.edges_to_lst(inplace=True)
+
+        self_ = super(GraphDataPair, self_).__add__(other_)
+
+        other_edges = other_.edges + n_self
+        self_.edges = torch.cat((self_.edges, other_edges), dim=0)
+
+        if as_adj:
+            self_.edges_to_adj(inplace=True)
+
+        del other_
+        return self_
