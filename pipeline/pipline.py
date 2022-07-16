@@ -61,7 +61,8 @@ class Pipeline:
                     res = stage(**input_)
 
                 else:
-                    res = stage(res)
+                    # res = stage(res)
+                    res = stage()
 
                 if stage.store_in is not None:
                     if not stage.force_store:

@@ -15,7 +15,12 @@ from .abstractModel import AbstractModel
 
 
 class AbstractNN(nn.Module, AbstractModel):
-    def __init__(self, device: torch.device):
+    def __init__(
+        self,
+        device: torch.device = torch.device("cpu")
+        if not torch.cuda.is_available()
+        else torch.device("cuda"),
+    ):
         super(AbstractNN, self).__init__()
         self.device = device
 
@@ -105,15 +110,15 @@ class AbstractNN(nn.Module, AbstractModel):
         weight_decay: float = 0,
         optimizer: torch.optim = optim.Adam,
         verbose: bool = False,
-        criterion: torch.nn.modules.loss = nn.CrossEntropyLoss(reduction='mean'),
+        criterion: torch.nn.modules.loss = nn.CrossEntropyLoss(reduction="mean"),
         labels_from_loader: Callable = lambda loader: loader.dataset.gdp.Y,
         metric: str = "auc",
         plot_results: bool = True,
-        save_results: bool = True,
+        save_results: bool = False,
         auc_plot_path: str = None,
         loss_plot_path: str = None,
         show_results: bool = True,
-        save_model: bool = True,
+        save_model: bool = False,
     ):
         assert metric in ["auc", "accuracy"]
         assert not save_results or plot_results, "Plotting is required to save results"
@@ -187,9 +192,9 @@ class AbstractNN(nn.Module, AbstractModel):
                     )
 
                     total_val_loss += loss.item() * (
-                            input_data[0].size(0)
-                            / (1 if criterion.reduction == "sum" else input_data[0].size(0))
-                            # * (1 if criterion.reduction == "sum" else input_data[0].size(0))
+                        input_data[0].size(0)
+                        / (1 if criterion.reduction == "sum" else input_data[0].size(0))
+                        # * (1 if criterion.reduction == "sum" else input_data[0].size(0))
                     )
 
             total_val_loss = total_val_loss / len(val_loader.dataset)
@@ -276,7 +281,7 @@ class AbstractNN(nn.Module, AbstractModel):
     ) -> float:
         self.eval()
         preds = self.predict(loader, probs=True)
-        labels = labels_from_loader(loader)
+        labels = labels_from_loader(loader).view(-1, 1)
 
         labels_ = torch.zeros_like(preds)
         labels_[range(labels.shape[0]), labels[:, 0]] = 1

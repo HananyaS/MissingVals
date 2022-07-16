@@ -3,7 +3,7 @@ from pipeline.stages.tabDataStage import TabDataStage
 from pipeline.stages.mlModelStage import MLModelStage
 from pipeline.stages.gfpStage import GFPStage
 from models.xgb import XGBoost
-from pipeline.stages.graphDataStage import GraphDataStage
+from pipeline.stages.graphDataStage import GraphsDataStage
 from models.graphClassification import ValuesAndGraphStructure as VGS
 
 loadData = TabDataStage(
@@ -23,7 +23,7 @@ normData = TabDataStage(name="Normalize Data", task="norm", store_in="dataset")
 #     run_kwargs={"distance": "heur_dist"},
 # )
 
-tab2Graph = GraphDataStage(
+tab2Graph = GraphsDataStage(
     name="Tab2Graph",
     task="from_tab",
     input_from={"tab_data": "dataset"},
@@ -33,7 +33,7 @@ tab2Graph = GraphDataStage(
 )
 
 getTrain = TabDataStage(
-# getTrain = GraphDataStage(
+# getTrain = GraphsDataStage(
     name="Get Train",
     task="get_train",
     run_kwargs={"as_loader": True, "batch_size": 32},
@@ -41,8 +41,8 @@ getTrain = TabDataStage(
     store_in="train_loader",
 )
 
-getTest = TabDataStage(
-# getTest = GraphDataStage(
+# getTest = TabDataStage(
+getTest = GraphsDataStage(
     name="Get Test",
     task="get_test",
     run_kwargs={"as_loader": True, "batch_size": 32},

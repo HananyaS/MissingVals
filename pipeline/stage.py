@@ -4,6 +4,10 @@ from abc import ABC, abstractmethod
 class Stage(ABC):
     _tasks = []
 
+    def __init_subclass__(cls, _tasks=(), **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._tasks = cls._tasks + _tasks
+
     def __init__(
         self,
         name: str,

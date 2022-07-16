@@ -4,7 +4,8 @@ from torch.utils.data import DataLoader
 from typing import Type
 
 
-class MLModelStage(AbstractModelStage):
+class MLModelStage(AbstractModelStage, _tasks=[]):
+
     def __init__(
         self,
         **kwargs,
@@ -40,8 +41,8 @@ class MLModelStage(AbstractModelStage):
         return model.predict(test_loader=test_loader, **kwargs)
 
     @staticmethod
-    def _evaluate(model: AbstractModel, val_loader: DataLoader, **kwargs):
-        return model.evaluate(val_loader=val_loader, **kwargs)
+    def _evaluate(model: AbstractModel, loader: DataLoader, **kwargs):
+        return model.evaluate(loader=loader, **kwargs)
 
     def __str__(self):
         return f"ML Model Stage {self.id}\t{self.name}"

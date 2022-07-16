@@ -1,18 +1,18 @@
-from mlModelStage import MLModelStage
+from .mlModelStage import MLModelStage
 from models.abstractNN import AbstractNN
 from torch.utils.data import DataLoader
 import torch
 
 
-class NNModelStage(MLModelStage):
-    _additional_tasks = ["extract_one_before_last_layer", "forward"]
-
+class NNModelStage(MLModelStage, _tasks=["extract_one_before_last_layer", "forward"]):
     def __init__(
         self,
         **kwargs,
     ):
-        self.ml_tasks = self._tasks.copy()
-        self._tasks.extend(self._additional_tasks)
+        self.ml_tasks = list(
+            set(self._tasks) - {"extract_one_before_last_layer", "forward"}
+        )
+        # self._tasks = self._tasks + self._additional_tasks
         super().__init__(**kwargs)
 
     def _run(self, *args, **kwargs):
@@ -64,4 +64,4 @@ class NNModelStage(MLModelStage):
         return output
 
     def __str__(self):
-        return f"Neural Network Mod elStage {self.id}\t{self.name}"
+        return f"Neural Network Model Stage {self.id}\t{self.name}"

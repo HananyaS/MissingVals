@@ -3,8 +3,6 @@ import numpy as np
 
 from datasets.tabDataPair import TabDataPair
 
-# from datasets.graphsDataPair import GraphsDataPair
-
 from tools.gfp import GFP
 from tools.knn import KNN
 
@@ -30,9 +28,7 @@ def tab2graphs(
     tab_data_ = deepcopy(tab_data)
 
     if fill_data_method == "gfp":
-        inter_samples_edges = get_knn_adj(tab_data_, **knn_kwargs)
-        gfp = GFP(**gfp_kwargs)
-        imputed_data_ = gfp.prop(tab_data_.X, inter_samples_edges)
+        imputed_data_, inter_samples_edges = fill_data_gfp(tab_data_, knn_kwargs=knn_kwargs, gfp_kwargs=gfp_kwargs)
 
     elif fill_data_method == "zeros":
         imputed_data_ = tab_data_.fill_na(inplace=False)
@@ -43,6 +39,7 @@ def tab2graphs(
     if include_edge_weights:
         if edge_weights_method == "corr":
             edge_weights = tab_data_.get_feat_corr(abs_=True, fill_na_first=False)
+            # edge_weights = tab_data_.get_feat_corr(abs_=True, fill_na_first=True)
         else:
             raise NotImplementedError
 
@@ -123,3 +120,11 @@ def edges_from_sample(
         adj[j, i] = edge_weights[i, j]
 
     return adj
+
+
+def fill_data_gfp(tab_data_: TabDataPair, knn_kwargs: dict, gfp_kwargs: dict = {}):
+    inter_samples_edges = get_knn_adj(tab_data_, **knn_kwargs)
+    gfp = GFP(**gfp_kwargs)
+    imputed_data_ = gfp.prop(tab_data_.X, inter_samples_edges)
+
+    return imputed_data_, inter_samples_edges

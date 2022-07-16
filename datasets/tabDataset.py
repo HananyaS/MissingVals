@@ -35,10 +35,10 @@ class TabDataset:
         self.name = name
         self.normalize = normalize
 
-        self.train = TabDataPair(
+        self.train_graph = TabDataPair(
             X=train_X,
             Y=train_Y,
-            name=f"{name} - train",
+            name=f"{name} - train_graph",
             normalize=False,
             shuffle=shuffle,
             add_existence_cols=add_existence_cols,
@@ -46,10 +46,10 @@ class TabDataset:
 
         if self.test_exists:
             assert train_X.shape[1] == test_X.shape[1]
-            self.test = TabDataPair(
+            self.test_graph = TabDataPair(
                 X=test_X,
                 Y=test_Y,
-                name=f"{name} - test",
+                name=f"{name} - test_graph",
                 normalize=False,
                 shuffle=shuffle,
                 add_existence_cols=add_existence_cols,
@@ -57,10 +57,10 @@ class TabDataset:
 
         if self.val_exists:
             assert train_X.shape[1] == val_X.shape[1]
-            self.val = TabDataPair(
+            self.val_graph = TabDataPair(
                 X=val_X,
                 Y=val_Y,
-                name=f"{name} - val",
+                name=f"{name} - val_graph",
                 normalize=False,
                 shuffle=shuffle,
                 add_existence_cols=add_existence_cols,

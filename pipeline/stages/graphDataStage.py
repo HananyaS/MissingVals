@@ -1,14 +1,20 @@
-from datasets.graphsDataset import GraphsDataset
+from datasets.graphDataset import GraphDataset
 from datasets.tabDataset import TabDataset
 from pipeline.stage import Stage
-from typing import List
 
 
-class GraphDataStage(Stage):
-    _additional_tasks: List[str] = ["from_tab", "norm", "get_train", "get_test", "get_val"]
+class GraphDataStage(
+    Stage,
+    _tasks=[
+        "from_tab",
+        "norm",
+        "get_train_loader",
+        "get_test_loader",
+        "get_val_loader",
+    ],
+):
 
     def __init__(self, **kwargs):
-        self._tasks.extend(self._additional_tasks)
         super().__init__(**kwargs)
 
     def _run(self, *args, **kwargs):
@@ -18,36 +24,36 @@ class GraphDataStage(Stage):
         if self.task == "norm":
             return self._norm(*args, **kwargs, **self.run_kwargs)
 
-        if self.task == "get_train":
-            return self._get_train(*args, **kwargs, **self.run_kwargs)
+        if self.task == "get_train_loader":
+            return self._get_train_loader(*args, **kwargs, **self.run_kwargs)
 
-        if self.task == "get_test":
-            return self._get_test(*args, **kwargs, **self.run_kwargs)
+        if self.task == "get_test_loader":
+            return self._get_test_loader(*args, **kwargs, **self.run_kwargs)
 
-        if self.task == "get_val":
-            return self._get_val(*args, **kwargs, **self.run_kwargs)
+        if self.task == "get_val_loader":
+            return self._get_val_loader(*args, **kwargs, **self.run_kwargs)
 
         raise ValueError(f"Unknown task:\t{self.task}, Available tasks: {self._tasks}")
 
     @staticmethod
     def _from_tab(tab_data: TabDataset, **kwargs):
-        return GraphsDataset.from_tab(tab_data=tab_data, **kwargs)
+        return GraphDataset.from_tab(tab_data=tab_data, **kwargs)
 
     @staticmethod
-    def _norm(data: GraphsDataset):
+    def _norm(data: GraphDataset):
         return data.zscore()
 
     @staticmethod
-    def _get_train(data: TabDataset, **kwargs):
-        return data.get_train_data(**kwargs)
+    def _get_train_loader(data: GraphDataset):
+        return data.get_train_loader()
 
     @staticmethod
-    def _get_test(data: TabDataset, **kwargs):
-        return data.get_test_data(**kwargs)
+    def _get_val_loader(data: GraphDataset):
+        return data.get_val_loader()
 
     @staticmethod
-    def _get_val(data: TabDataset, **kwargs):
-        return data.get_val_data(**kwargs)
+    def _get_test_loader(data: GraphDataset):
+        return data.get_test_loader()
 
     def __str__(self):
-        return f"Graphs Data Stage {self.id}\t{self.name}"
+        return f"Graph Data Stage {self.id}\t{self.name}"

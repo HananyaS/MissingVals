@@ -1,13 +1,21 @@
+import torch
 from datasets.tabDataset import TabDataset
 from pipeline.stage import Stage
-from typing import List
+from typing import Type
 
 
-class TabDataStage(Stage):
-    _additional_tasks: List[str] = ["load", "norm", "get_train", "get_test", "get_val"]
-
+class TabDataStage(
+    Stage,
+    _tasks=[
+        "load",
+        "norm",
+        "get_train",
+        "get_test",
+        "get_val",
+        "setX",
+    ],
+):
     def __init__(self, **kwargs):
-        self._tasks.extend(self._additional_tasks)
         super().__init__(**kwargs)
 
     def _run(self, *args, **kwargs):
@@ -25,6 +33,9 @@ class TabDataStage(Stage):
 
         if self.task == "get_val":
             return self._get_val(*args, **kwargs, **self.run_kwargs)
+
+        if self.task == "setX":
+            return self._set_X(*args, **kwargs, **self.run_kwargs)
 
         raise ValueError(f"Unknown task:\t{self.task}, Available tasks: {self._tasks}")
 
@@ -47,6 +58,24 @@ class TabDataStage(Stage):
     @staticmethod
     def _get_val(data: TabDataset, **kwargs):
         return data.get_val_data(**kwargs)
+
+    @staticmethod
+    def _set_X(data: TabDataset, set_: str, X: Type[torch.Tensor]):
+        assert set_ in ["train", "test", "val"]
+
+        if set_ == "train":
+            data.train.X = X
+
+        elif set_ == "val":
+            assert data.val_exists, "Val set doesn't exist"
+            data.val.X = X
+        else:
+            assert data.test_exists, "Test set doesn't exist"
+            data.test.X = X
+
+        data.normalized = False
+
+        return data
 
     def __str__(self):
         return f"Tabular Data Stage {self.id}\t{self.name}"

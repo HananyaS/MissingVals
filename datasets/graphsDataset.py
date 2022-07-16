@@ -201,7 +201,7 @@ class GraphsDataset:
     """
     @property
     def num_train_nodes(self):
-        return self.train.num_nodes
+        return self.train_graph.num_nodes
 
     @property
     def num_test_nodes(self):
@@ -209,7 +209,7 @@ class GraphsDataset:
             print("Test data is not available")
             return None
 
-        return self.test.num_nodes
+        return self.test_graph.num_nodes
 
     @property
     def num_val_nodes(self):
@@ -217,11 +217,11 @@ class GraphsDataset:
             print("Validation data is not available")
             return None
 
-        return self.val.num_nodes
+        return self.val_graph.num_nodes
     
     @property
     def num_train_edges(self):
-        return self.train.num_edges
+        return self.train_graph.num_edges
 
     @property
     def num_test_edges(self):
@@ -229,7 +229,7 @@ class GraphsDataset:
             print("Test data is not available")
             return None
 
-        return self.test.num_edges
+        return self.test_graph.num_edges
 
     @property
     def num_val_edges(self):
@@ -237,7 +237,7 @@ class GraphsDataset:
             print("Validation data is not available")
             return None
 
-        return self.val.num_edges
+        return self.val_graph.num_edges
     
     """
 
@@ -268,7 +268,7 @@ if __name__ == "__main__":
 
     st = time()
 
-    data_dir = "../data/RoysData/processed/"
+    data_dir = "../data/Banknote/processed/90"
 
     td = TabDataset.load(
         data_dir=data_dir,
@@ -277,16 +277,16 @@ if __name__ == "__main__":
         add_existence_cols=False,
     )
 
-    gd = GraphsDataset.from_tab(
+    graphs_dataset = GraphsDataset.from_tab(
         td,
         fill_data_method="gfp",
         store_as_adj=True,
         # knn_kwargs={"distance": "heur_dist", "dist_params": {"alpha": .5, "beta": .5}},
     )
 
-    train = gd.get_train_data(as_loader=True, batch_size=32)
-    val = gd.get_val_data(as_loader=True, batch_size=32)
-    test = gd.get_test_data(as_loader=True, batch_size=32)
+    train_graphs = graphs_dataset.get_train_data(as_loader=True, batch_size=32)
+    val_graphs = graphs_dataset.get_val_data(as_loader=True, batch_size=32)
+    test_graphs = graphs_dataset.get_test_data(as_loader=True, batch_size=32)
 
     params = {
         "preweight": 5,
@@ -296,25 +296,25 @@ if __name__ == "__main__":
         "dropout": 0.3,
     }
 
-    model = ValuesAndGraphStructure(input_example=train, RECEIVED_PARAMS=params)
+    model = ValuesAndGraphStructure(input_example=train_graphs, RECEIVED_PARAMS=params)
 
     forward_args = model.transform_input(
-        [train.dataset.gdp.get_X(), train.dataset.gdp.get_edges(), None]
+        [train_graphs.dataset.gdp.get_X(), train_graphs.dataset.gdp.get_edges(), None]
     )
     graph_embeddings = model.forward_one_before_last_layer(*forward_args[0])
-    print(len(graph_embeddings))
-    print(len(train.dataset))
-    # model.fit(
-    #     train_loader=train,
-    #     val_loader=val,
-    #     auc_plot_path="auc.png",
-    #     loss_plot_path="loss.png",
-    #     lr=0.01,
-    #     n_epochs=30,
-    #     verbose=True,
-    # )
+    # print(len(graph_embeddings))
+    # print(len(train_graphs.dataset))
+    model.fit(
+        train_loader=train_graphs,
+        val_loader=val_graphs,
+        auc_plot_path="auc.png",
+        loss_plot_path="loss.png",
+        lr=0.01,
+        n_epochs=30,
+        verbose=True,
+    )
     #
-    # test_auc = model.evaluate(loader=test)
+    # test_auc = model.evaluate(loader=test_graph)
     # print(f"Test AUC: {test_auc:.4f}")
 
     print(f"Time elapsed: {time() - st} seconds")

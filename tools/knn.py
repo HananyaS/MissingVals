@@ -16,7 +16,9 @@ class KNN:
     _dist_dict = {"euclidian": EuclidianDist, "heur_dist": HeurEuc}
     _input_types = [np.ndarray, torch.Tensor, TabDataPair]
 
-    def __init__(self, distance: str, dist_params: dict = {}, k: int = 30):
+    def __init__(
+        self, distance: str = "euclidian", dist_params: dict = {}, k: int = 30
+    ):
         self.dist_name = distance
         self.dist = self._dist_dict[distance](**dist_params)
         self.k = k

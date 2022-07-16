@@ -137,6 +137,7 @@ class ValuesAndGraphStructure(AbstractNN):
 
         if len(xs.shape) == 3 and xs.shape[-1] == 1:
             xs = torch.squeeze(xs, -1)
+
         return [xs, adjs], labels
 
     def _eval_loss(

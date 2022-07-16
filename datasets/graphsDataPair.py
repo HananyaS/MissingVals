@@ -103,7 +103,9 @@ class GraphsDataPair:
             else:
                 all_X = torch.cat((all_X, g.X.unsqueeze(0)), dim=0)
 
-                all_edges = torch.cat((all_edges, g.edges_to_adj(inplace=False).unsqueeze(0)), dim=0)
+                all_edges = torch.cat(
+                    (all_edges, g.edges_to_adj(inplace=False).unsqueeze(0)), dim=0
+                )
                 if Y_exist:
                     all_Y = torch.cat((all_Y, g.Y.unsqueeze(0)), dim=0)
 
@@ -183,11 +185,11 @@ class GraphsDataPair:
                 if self.gdp.Y is not None:
                     return self.gdp.X[idx], self.gdp.edges[idx], self.gdp.Y[idx]
 
-                return self.gdp.X, self.gdp.edges[idx]
+                return self.gdp.X[idx], self.gdp.edges[idx]
 
             def __len__(self):
                 return len(self.gdp)
-            
+
         ds = GraphsDataset(self)
         return DataLoader(ds, **kwargs)
 

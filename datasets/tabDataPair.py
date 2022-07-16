@@ -8,6 +8,8 @@ from torch.utils.data import Dataset, DataLoader
 
 from typing import Union, List, Tuple
 
+from copy import deepcopy
+
 
 class TabDataPair(Dataset):
     _input_types = Union[np.ndarray, torch.Tensor]
@@ -106,6 +108,7 @@ class TabDataPair(Dataset):
             assert len(mu) == len(sigma) == self.X.shape[1]
 
         else:
+            # mu = self.X.nanmean(axis=0)
             mu = torch.nanmean(self.X, axis=0)
             sigma = torch.from_numpy(np.nanstd(self.X.cpu().detach().numpy(), axis=0))
 
@@ -127,7 +130,7 @@ class TabDataPair(Dataset):
 
     def denormalize(self, inplace: bool = True):
         if not self.normalized:
-            print("Data isn't normalize!")
+            # print("Data isn't normalize!")
             return self.X if not inplace else self
 
         mu, sigma = self.norm_params
@@ -159,7 +162,7 @@ class TabDataPair(Dataset):
         return self.X.shape[0]
 
     def __str__(self):
-        return f'Dataset "{self.name}" contains {self.X.shape[0]} samples and {self.X.shape[1]} features, in {"train" if self.train else "test"} mode '
+        return f'Dataset "{self.name}" contains {self.X.shape[0]} samples and {self.X.shape[1]} features, in {"train_graph" if self.train else "test_graph"} mode '
 
     def get_feat_corr(self, abs_: bool = False, fill_na_first: bool = False):
         df = pd.DataFrame(self.X.cpu().detach().numpy())
@@ -238,3 +241,28 @@ class TabDataPair(Dataset):
 
     def set_Y(self, Y):
         self.Y = Y
+
+    def __add__(self, other):
+        self_ = deepcopy(self)
+        other_ = deepcopy(other)
+
+        normalized, norm_params = self_.normalized, self_.norm_params
+        self_.denormalize(inplace=True)
+        self_.X = torch.cat((self_.X, other_.X), dim=0)
+
+        if self_.Y is not None:
+            self_.Y = torch.cat((self_.Y, other_.Y), dim=0)
+
+        if normalized:
+            self_.zscore(params=norm_params, inplace=True)
+
+        del other_, norm_params, normalized
+        return self_
+
+
+if __name__ == "__main__":
+    from datasets.tabDataset import TabDataset
+
+    td = TabDataset.load(data_dir="../data/Banknote/processed/90")
+    x = td.train_graph + td.val_graph
+    print(x)

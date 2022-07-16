@@ -11,11 +11,8 @@ from typing import List, Union
 from tools.knn import KNN
 
 
-class GFPStage(Stage):
-    _additional_tasks: List[str] = ["build", "prop"]
-
+class GFPStage(Stage, _tasks=["build", "prop"]):
     def __init__(self, **kwargs):
-        self._tasks.extend(self._additional_tasks)
         super().__init__(**kwargs)
 
     def _run(self, *args, **kwargs):
